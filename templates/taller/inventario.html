@@ -9,11 +9,17 @@
   <a class="btn btn-primary" href="{% url 'producto_nuevo' %}">+ NUEVO PRODUCTO</a>
 </div>
 
-<div class="filters">
+<div class="filters" style="align-items:center">
   <a href="{% url 'inventario' %}" class="{% if not tipo_actual %}on{% endif %}">Todos</a>
   {% for valor, etiqueta in tipos %}
-  <a href="?tipo={{ valor }}" class="{% if tipo_actual == valor %}on{% endif %}">{{ etiqueta }}</a>
+  <a href="?tipo={{ valor }}{% if buscar %}&q={{ buscar|urlencode }}{% endif %}" class="{% if tipo_actual == valor %}on{% endif %}">{{ etiqueta }}</a>
   {% endfor %}
+  <form class="search-form" method="get" style="margin-left:auto">
+    {% if tipo_actual %}<input type="hidden" name="tipo" value="{{ tipo_actual }}">{% endif %}
+    <input type="text" name="q" placeholder="Buscar código, nombre, categoría..." value="{{ buscar }}">
+    <button class="btn btn-outline" type="submit" style="height:40px">BUSCAR</button>
+    {% if buscar %}<a class="btn btn-outline" href="{% url 'inventario' %}{% if tipo_actual %}?tipo={{ tipo_actual }}{% endif %}" style="height:40px">LIMPIAR</a>{% endif %}
+  </form>
 </div>
 
 <div class="card">
@@ -38,9 +44,18 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="{% if hay_fotos %}8{% else %}7{% endif %}" class="empty">Sin productos. Regístralos desde "Nuevo Producto".</td></tr>
+      <tr><td colspan="{% if hay_fotos %}8{% else %}7{% endif %}" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Sin productos. Regístralos desde "Nuevo Producto".{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
+  {% if pagina.paginator.num_pages > 1 %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-top:1px solid var(--border)">
+    <span class="muted">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }} · {{ pagina.paginator.count }} productos</span>
+    <div style="display:flex;gap:8px">
+      {% if pagina.has_previous %}<a class="btn btn-outline" href="?{{ params }}{% if params %}&{% endif %}page={{ pagina.previous_page_number }}">← Anterior</a>{% endif %}
+      {% if pagina.has_next %}<a class="btn btn-outline" href="?{{ params }}{% if params %}&{% endif %}page={{ pagina.next_page_number }}">Siguiente →</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

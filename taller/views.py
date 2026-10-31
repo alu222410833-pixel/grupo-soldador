@@ -1,11 +1,13 @@
 import re
 from decimal import Decimal, InvalidOperation
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
-from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count
+from django.core.paginator import Paginator
+from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
 from .models import Categoria, Cliente, Cotizacion, DetalleCotizacion, Producto
@@ -274,12 +276,24 @@ def categoria_nueva(request):
 @login_required
 def inventario(request):
     tipo = request.GET.get("tipo", "")
+    buscar = request.GET.get("q", "").strip()
     qs = Producto.objects.select_related("categoria").exclude(tipo=Producto.Tipo.MANO_OBRA)
     if tipo:
         qs = qs.filter(tipo=tipo)
-    productos = list(qs[:200])
+    if buscar:
+        qs = qs.filter(
+            Q(codigo__icontains=buscar)
+            | Q(nombre__icontains=buscar)
+            | Q(categoria__nombre__icontains=buscar)
+        )
+    pagina = Paginator(qs, 15).get_page(request.GET.get("page") or 1)
+    productos = list(pagina.object_list)
+    params = urlencode({k: v for k, v in [("tipo", tipo), ("q", buscar)] if v})
     return render(request, "taller/inventario.html", {
         "productos": productos,
+        "pagina": pagina,
+        "params": params,
+        "buscar": buscar,
         "hay_fotos": any(p.imagen for p in productos),
         "tipos": [(v, l) for v, l in Producto.Tipo.choices if v != Producto.Tipo.MANO_OBRA],
         "tipo_actual": tipo,
