@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Nueva Cotización — Grupo Soldador M.A.M{% endblock %}
+{% block title %}{% if edit %}Editar {{ cot.folio }}{% else %}Nueva Cotización{% endif %} — Grupo Soldador M.A.M{% endblock %}
 {% block content %}
 <div class="topbar">
   <div>
-    <div class="crumb">Páginas / Cotizaciones / Nueva</div>
-    <h1>Nueva Cotización</h1>
+    <div class="crumb">Páginas / Cotizaciones / {% if edit %}Editar {{ cot.folio }}{% else %}Nueva{% endif %}</div>
+    <h1>{% if edit %}Editar {{ cot.folio }}{% else %}Nueva Cotización{% endif %}</h1>
   </div>
 </div>
 
@@ -21,12 +21,12 @@
     <div class="form-grid">
       <div class="field">
         <label>Cliente <span class="req">*</span></label>
-        <input type="hidden" name="cliente" id="f-cliente">
-        <button type="button" id="cli-btn" class="cli-btn">— Selecciona cliente —</button>
+        <input type="hidden" name="cliente" id="f-cliente" value="{{ cot.cliente_id|default:'' }}">
+        <button type="button" id="cli-btn" class="cli-btn"{% if cot %} style="border-color:var(--blue)"{% endif %}>{{ cot.cliente.nombre_completo|default:"— Selecciona cliente —" }}</button>
       </div>
       <div class="field">
         <label>Vehículo / Trabajo <span class="req">*</span></label>
-        <input type="text" name="vehiculo" id="f-vehiculo" required placeholder='Ej. "Nissan Sentra 2018" o "Portón herrería"'>
+        <input type="text" name="vehiculo" id="f-vehiculo" required value="{{ cot.vehiculo|default:'' }}" placeholder='Ej. "Nissan Sentra 2018" o "Portón herrería"'>
       </div>
       <div class="field full" id="veh-pick" style="display:none">
         <label style="font-weight:400;text-transform:none;letter-spacing:0">Vehículos del cliente — toca uno para usarlo:</label>
@@ -36,13 +36,13 @@
         <label>Estado</label>
         <select name="estado">
           {% for valor, etiqueta in estados %}
-          <option value="{{ valor }}">{{ etiqueta }}</option>
+          <option value="{{ valor }}"{% if cot.estado == valor %} selected{% endif %}>{{ etiqueta }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="field">
         <label>Notas</label>
-        <input type="text" name="notas" placeholder="Opcional">
+        <input type="text" name="notas" value="{{ cot.notas|default:'' }}" placeholder="Opcional">
       </div>
     </div>
 
@@ -61,8 +61,8 @@
     </div>
 
     <div class="cta-row" style="margin-top:22px;margin-bottom:0">
-      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>GUARDAR COTIZACIÓN</button>
-      <a class="btn btn-outline" href="{% url 'cotizaciones' %}">CANCELAR</a>
+      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>{% if edit %}GUARDAR CAMBIOS{% else %}GUARDAR COTIZACIÓN{% endif %}</button>
+      <a class="btn btn-outline" href="{% if edit %}{% url 'cotizacion_detalle' cot.pk %}{% else %}{% url 'cotizaciones' %}{% endif %}">CANCELAR</a>
     </div>
   </form>
 </div>
@@ -115,6 +115,7 @@
 </div>
 
 {{ productos_map|json_script:"prod-map" }}
+{% if partidas_iniciales %}{{ partidas_iniciales|json_script:"ini-map" }}{% endif %}
 <template id="row-tpl">
   <tr>
     <td data-l="Producto / Servicio">
@@ -261,7 +262,31 @@
   pPop.addEventListener('click', e => { if (e.target === pPop) pPop.style.display = 'none'; });
   pSearch.addEventListener('input', () => pintarProds(pSearch.value));
 
-  document.getElementById('add-row').click();
+  const iniEl = document.getElementById('ini-map');
+  const iniciales = iniEl ? JSON.parse(iniEl.textContent) : [];
+  if (iniciales.length) {
+    iniciales.forEach(d => {
+      const frag = tpl.content.cloneNode(true);
+      const tr = frag.querySelector('tr');
+      const btn = tr.querySelector('.prod-btn');
+      if (d.id) {
+        const p = prodById[String(d.id)];
+        tr.querySelector('.prod-hid').value = d.id;
+        btn.textContent = p ? (p.codigo + ' — ' + p.nombre) : 'Producto #' + d.id;
+        btn.style.borderColor = 'var(--blue)';
+      } else {
+        tr.querySelector('.libre-desc').value = d.desc || '';
+        tr.querySelector('.libre-precio').value = d.precio || '';
+        btn.textContent = '✎ ' + (d.desc || '') + ' (partida libre)';
+        btn.style.borderColor = 'var(--accent)';
+      }
+      tr.querySelector('.cant').value = d.cantidad || 1;
+      tbody.appendChild(frag);
+    });
+    recalc();
+  } else {
+    document.getElementById('add-row').click();
+  }
 
   const clientes = JSON.parse(document.getElementById('cli-map').textContent);
   const hidCli = document.getElementById('f-cliente');
@@ -299,6 +324,12 @@
     pop.style.display = 'none';
     inpVeh.value = '';
     pintarVehs(c.vehs || []);
+  }
+
+  // Edición: cliente ya elegido — pintar sus vehículos
+  if (hidCli.value) {
+    const c0 = clientes.find(c => String(c.id) === hidCli.value);
+    if (c0) pintarVehs(c0.vehs || []);
   }
 
   function pintarLista(q) {

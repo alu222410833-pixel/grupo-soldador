@@ -11,6 +11,18 @@
   .doc-box p { margin: 3px 0; font-size: 13.5px; }
   .doc-total { text-align: right; font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 14px; }
   .doc-notas { margin-top: 16px; font-size: 13px; }
+  .doc table { min-width: 0; }
+  .doc td, .doc th { padding: 8px 8px; }
+  .estado-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .estado-bar select { padding: 9px 12px; background: #0F1534; border: 1px solid var(--border); border-radius: 9px; color: var(--text); font-family: inherit; font-size: 12.5px; outline: none; }
+  @media (max-width: 900px) {
+    .doc { max-width: none; }
+    .doc-grid { grid-template-columns: 1fr; }
+    .doc-folio { font-size: 18px; }
+    .doc-total { font-size: 19px; }
+    .doc td, .doc th { padding: 6px 5px; font-size: 12px; }
+    .estado-bar select { flex: 1; min-width: 0; }
+  }
   @page { margin: 0; }
   @media print {
     body { background: #fff !important; color: #111 !important; padding: 40px !important; }
@@ -52,6 +64,19 @@
       {% elif cot.estado == 'EN_PROCESO' %}<span class="badge b-info">En proceso</span>
       {% else %}<span class="badge b-grey">Borrador</span>{% endif %}
     </div>
+  </div>
+
+  <div class="no-print estado-bar" style="margin-bottom:18px">
+    <form method="post" action="{% url 'cotizacion_estado' cot.pk %}" class="estado-bar" style="flex:1">
+      {% csrf_token %}
+      <select name="estado">
+        {% for valor, etiqueta in estados %}
+        <option value="{{ valor }}"{% if cot.estado == valor %} selected{% endif %}>{{ etiqueta }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-outline" style="font-size:11.5px;padding:8px 14px">CAMBIAR ESTADO</button>
+    </form>
+    <a class="btn btn-outline" href="{% url 'cotizacion_editar' cot.pk %}" style="font-size:11.5px;padding:8px 14px">✎ EDITAR</a>
   </div>
 
   <div class="doc-grid">

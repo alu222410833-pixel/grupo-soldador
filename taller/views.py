@@ -70,7 +70,117 @@ def cotizacion_detalle(request, pk):
         .prefetch_related("detalles__producto"),
         pk=pk,
     )
-    return render(request, "taller/cotizacion_detalle.html", {"cot": cot})
+    return render(request, "taller/cotizacion_detalle.html", {
+        "cot": cot,
+        "estados": Cotizacion.Estado.choices,
+    })
+
+
+@login_required
+def cotizacion_estado(request, pk):
+    cot = get_object_or_404(Cotizacion, pk=pk)
+    if request.method == "POST":
+        estado = request.POST.get("estado", "")
+        if estado in Cotizacion.Estado.values:
+            cot.estado = estado
+            cot.save(update_fields=["estado", "actualizado_en"])
+            messages.success(request, f"{cot.folio} marcada como {cot.get_estado_display()}.")
+    return redirect("cotizacion_detalle", pk=pk)
+
+
+def _contexto_cotizacion():
+    clientes_qs = list(Cliente.objects.prefetch_related("vehiculos"))
+    clientes_map = [
+        {"id": c.pk, "nombre": c.nombre_completo, "tel": c.telefono,
+         "vehs": [{"desc": v.descripcion, "img": v.imagen.url if v.imagen else ""}
+                  for v in c.vehiculos.all()]}
+        for c in clientes_qs
+    ]
+    productos_map = [
+        {"id": p.pk, "codigo": p.codigo, "nombre": p.nombre,
+         "tipo": p.tipo, "tipo_label": p.get_tipo_display(),
+         "precio": float(p.precio_unitario)}
+        for p in Producto.objects.filter(activo=True)
+    ]
+    return {"estados": Cotizacion.Estado.choices,
+            "clientes_map": clientes_map, "productos_map": productos_map}
+
+
+def _partidas_desde_post(request):
+    detalles = []
+    for pid, cant, ldesc, lprecio in zip(
+        request.POST.getlist("producto"), request.POST.getlist("cantidad"),
+        request.POST.getlist("libre_desc"), request.POST.getlist("libre_precio"),
+    ):
+        producto = Producto.objects.filter(pk=pid or 0).first()
+        if not (cant.isdigit() and int(cant) > 0):
+            continue
+        if producto:
+            detalles.append({"producto": producto, "cantidad": int(cant)})
+        elif ldesc.strip():
+            try:
+                precio = Decimal(lprecio)
+            except (InvalidOperation, TypeError):
+                precio = None
+            if precio is not None and precio >= 0:
+                detalles.append({"descripcion": ldesc.strip(), "precio": precio,
+                                 "cantidad": int(cant)})
+    return detalles
+
+
+def _crear_detalles(cot, detalles):
+    for d in detalles:
+        DetalleCotizacion.objects.create(
+            cotizacion=cot,
+            producto=d.get("producto"),
+            descripcion=d.get("descripcion", ""),
+            cantidad=d["cantidad"],
+            precio_unitario=d.get("precio"),
+        )
+
+
+@login_required
+def cotizacion_editar(request, pk):
+    cot = get_object_or_404(
+        Cotizacion.objects.select_related("cliente").prefetch_related("detalles__producto"),
+        pk=pk,
+    )
+    if request.method == "POST":
+        cliente = Cliente.objects.filter(pk=request.POST.get("cliente") or 0).first()
+        vehiculo = request.POST.get("vehiculo", "").strip()
+        estado = request.POST.get("estado", "")
+        if estado not in Cotizacion.Estado.values:
+            estado = cot.estado
+        detalles = _partidas_desde_post(request)
+        if not cliente:
+            messages.error(request, "Selecciona un cliente.")
+        elif not vehiculo:
+            messages.error(request, "Describe el vehículo o trabajo a cotizar.")
+        elif not detalles:
+            messages.error(request, "Agrega al menos una partida con producto y cantidad válidos.")
+        else:
+            cot.cliente = cliente
+            cot.vehiculo = vehiculo
+            cot.estado = estado
+            cot.notas = request.POST.get("notas", "").strip()
+            cot.save()
+            cot.detalles.all().delete()
+            _crear_detalles(cot, detalles)
+            messages.success(request, f"Cotización {cot.folio} actualizada — ${cot.total:,.2f} MXN.")
+            return redirect("cotizacion_detalle", pk=cot.pk)
+
+    partidas_iniciales = [
+        ({"id": d.producto_id, "cantidad": d.cantidad} if d.producto_id
+         else {"desc": d.descripcion, "precio": float(d.precio_unitario), "cantidad": d.cantidad})
+        for d in cot.detalles.all()
+    ]
+    ctx = _contexto_cotizacion()
+    ctx.update({
+        "edit": True,
+        "cot": cot,
+        "partidas_iniciales": partidas_iniciales,
+    })
+    return render(request, "taller/cotizacion_form.html", ctx)
 
 
 @login_required
@@ -204,24 +314,7 @@ def cotizacion_nueva(request):
         if estado not in Cotizacion.Estado.values:
             estado = Cotizacion.Estado.BORRADOR
 
-        detalles = []
-        for pid, cant, ldesc, lprecio in zip(
-            request.POST.getlist("producto"), request.POST.getlist("cantidad"),
-            request.POST.getlist("libre_desc"), request.POST.getlist("libre_precio"),
-        ):
-            producto = Producto.objects.filter(pk=pid or 0).first()
-            if not (cant.isdigit() and int(cant) > 0):
-                continue
-            if producto:
-                detalles.append({"producto": producto, "cantidad": int(cant)})
-            elif ldesc.strip():
-                try:
-                    precio = Decimal(lprecio)
-                except (InvalidOperation, TypeError):
-                    precio = None
-                if precio is not None and precio >= 0:
-                    detalles.append({"descripcion": ldesc.strip(), "precio": precio,
-                                     "cantidad": int(cant)})
+        detalles = _partidas_desde_post(request)
 
         if not cliente:
             messages.error(request, "Selecciona un cliente.")
@@ -237,35 +330,11 @@ def cotizacion_nueva(request):
                 notas=request.POST.get("notas", "").strip(),
                 creado_por=request.user,
             )
-            for d in detalles:
-                DetalleCotizacion.objects.create(
-                    cotizacion=cot,
-                    producto=d.get("producto"),
-                    descripcion=d.get("descripcion", ""),
-                    cantidad=d["cantidad"],
-                    precio_unitario=d.get("precio"),
-                )
+            _crear_detalles(cot, detalles)
             messages.success(request, f"Cotización {cot.folio} creada — ${cot.total:,.2f} MXN.")
             return redirect("cotizaciones")
 
-    clientes_qs = list(Cliente.objects.prefetch_related("vehiculos"))
-    clientes_map = [
-        {"id": c.pk, "nombre": c.nombre_completo, "tel": c.telefono,
-         "vehs": [{"desc": v.descripcion, "img": v.imagen.url if v.imagen else ""}
-                  for v in c.vehiculos.all()]}
-        for c in clientes_qs
-    ]
-    productos_map = [
-        {"id": p.pk, "codigo": p.codigo, "nombre": p.nombre,
-         "tipo": p.tipo, "tipo_label": p.get_tipo_display(),
-         "precio": float(p.precio_unitario)}
-        for p in Producto.objects.filter(activo=True)
-    ]
-    return render(request, "taller/cotizacion_form.html", {
-        "estados": Cotizacion.Estado.choices,
-        "clientes_map": clientes_map,
-        "productos_map": productos_map,
-    })
+    return render(request, "taller/cotizacion_form.html", _contexto_cotizacion())
 
 
 @login_required
