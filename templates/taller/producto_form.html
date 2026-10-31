@@ -44,8 +44,8 @@
         <button type="button" id="btn-newcat" style="margin-top:6px;background:none;border:none;color:var(--blue);font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;padding:0">+ NUEVA CATEGORÍA</button>
         <div id="newcat" style="display:none;margin-top:8px;gap:6px;align-items:center">
           <input type="text" id="nc-nombre" placeholder="Nombre" style="flex:1;min-width:0">
-          <select id="nc-parent" style="flex:0 0 auto;max-width:140px">
-            <option value="">Raíz</option>
+          <select id="nc-parent" title="Categoría padre (opcional)" style="flex:0 0 auto;max-width:140px">
+            <option value="">Sin padre (raíz)</option>
             {% for c in categorias %}
             <option value="{{ c.pk }}">{{ c.nombre }}</option>
             {% endfor %}
