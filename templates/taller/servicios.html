@@ -9,6 +9,12 @@
   <a class="btn btn-primary" href="{% url 'servicio_nuevo' %}">+ NUEVO SERVICIO</a>
 </div>
 
+<form class="search-form" method="get">
+  <input type="text" name="q" value="{{ buscar }}" placeholder="Buscar por código, nombre…">
+  <button class="btn btn-outline" type="submit">BUSCAR</button>
+  {% if buscar %}<a class="btn btn-outline" href="{% url 'servicios' %}">LIMPIAR</a>{% endif %}
+</form>
+
 <div class="card">
   <table>
     <thead>
@@ -23,9 +29,18 @@
         <td>{% if s.activo %}<span class="badge b-ok">Disponible</span>{% else %}<span class="badge b-grey">Inactivo</span>{% endif %}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" class="empty">Sin servicios. Regístralos desde "Nuevo Servicio".</td></tr>
+      <tr><td colspan="4" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Sin servicios. Regístralos desde "Nuevo Servicio".{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
+  {% if pagina.paginator.num_pages > 1 %}
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-top:1px solid var(--border)">
+    <span class="muted">Página {{ pagina.number }} de {{ pagina.paginator.num_pages }} · {{ pagina.paginator.count }} servicios</span>
+    <div style="display:flex;gap:8px">
+      {% if pagina.has_previous %}<a class="btn btn-outline" href="?{{ params }}{% if params %}&{% endif %}page={{ pagina.previous_page_number }}">← Anterior</a>{% endif %}
+      {% if pagina.has_next %}<a class="btn btn-outline" href="?{{ params }}{% if params %}&{% endif %}page={{ pagina.next_page_number }}">Siguiente →</a>{% endif %}
+    </div>
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

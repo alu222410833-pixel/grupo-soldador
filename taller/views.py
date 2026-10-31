@@ -395,8 +395,21 @@ def producto_editar(request, pk):
 
 @login_required
 def servicios(request):
+    buscar = request.GET.get("q", "").strip()
+    qs = Producto.objects.filter(tipo=Producto.Tipo.MANO_OBRA)
+    if buscar:
+        qs = qs.filter(
+            Q(codigo__icontains=buscar)
+            | Q(nombre__icontains=buscar)
+            | Q(descripcion__icontains=buscar)
+        )
+    pagina = Paginator(qs, 15).get_page(request.GET.get("page") or 1)
+    params = urlencode({"q": buscar}) if buscar else ""
     return render(request, "taller/servicios.html", {
-        "servicios": Producto.objects.filter(tipo=Producto.Tipo.MANO_OBRA)[:200],
+        "servicios": pagina.object_list,
+        "pagina": pagina,
+        "params": params,
+        "buscar": buscar,
     })
 
 
