@@ -1,31 +1,58 @@
 {% extends "base.html" %}
 {% block title %}Usuarios — Grupo Soldador M.A.M{% endblock %}
+{% block extra_css %}
+<style>
+  .mini-act { display:inline-flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .mini-act .btn { padding:6px 11px; font-size:10.5px; }
+  .mini-act form { display:inline; margin:0; }
+</style>
+{% endblock %}
 {% block content %}
 <div class="topbar">
   <div>
     <div class="crumb">Páginas / Usuarios</div>
-    <h1>Usuarios del sistema</h1>
+    <h1>Usuarios del sistema <span class="muted" style="font-size:13px;font-weight:600">· {{ total_empleados }} de {{ max_empleados }} empleados</span></h1>
   </div>
+  {% if puede_agregar %}
   <a class="btn btn-primary" href="{% url 'usuario_nuevo' %}"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>NUEVO EMPLEADO</a>
+  {% else %}
+  <span class="btn btn-outline" style="opacity:.55;cursor:not-allowed">MÁXIMO {{ max_empleados }} EMPLEADOS</span>
+  {% endif %}
 </div>
 
 <div class="card">
-  <table>
+  <table class="ptable">
     <thead>
-      <tr><th>Empleado</th><th>Usuario</th><th>Rol</th><th>Último acceso</th><th>Estado</th></tr>
+      <tr><th>Empleado</th><th>Usuario</th><th>Rol</th><th>Último acceso</th><th>Estado</th><th></th></tr>
     </thead>
     <tbody>
       {% for u in empleados %}
       <tr>
-        <td><strong>{{ u.get_full_name|default:"—" }}</strong></td>
-        <td class="folio">{{ u.username }}</td>
-        <td>
+        <td data-l="Empleado"><strong>{{ u.get_full_name|default:"—" }}</strong></td>
+        <td data-l="Usuario" class="folio">{{ u.username }}</td>
+        <td data-l="Rol">
           {% if u.is_superuser %}<span class="badge b-info">Superadmin</span>
           {% elif u.is_staff %}<span class="badge b-warn">Administrador</span>
           {% else %}<span class="badge b-grey">Empleado</span>{% endif %}
         </td>
-        <td class="muted">{% if u.last_login %}{{ u.last_login|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</td>
-        <td>{% if u.is_active %}<span class="badge b-ok">Activo</span>{% else %}<span class="badge b-bad">Inactivo</span>{% endif %}</td>
+        <td data-l="Último acceso" class="muted">{% if u.last_login %}{{ u.last_login|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</td>
+        <td data-l="Estado">{% if u.is_active %}<span class="badge b-ok">Activo</span>{% else %}<span class="badge b-bad">Inactivo</span>{% endif %}</td>
+        <td>
+          <div class="mini-act">
+            <a class="btn btn-outline" href="{% url 'usuario_editar' u.pk %}">EDITAR</a>
+            {% if not u.is_superuser and u != request.user %}
+            <form method="post" action="{% url 'usuario_toggle' u.pk %}">
+              {% csrf_token %}
+              {% if u.is_active %}<button class="btn btn-outline" type="submit" style="color:var(--accent)">DESACTIVAR</button>
+              {% else %}<button class="btn btn-outline" type="submit" style="color:var(--blue)">ACTIVAR</button>{% endif %}
+            </form>
+            <form method="post" action="{% url 'usuario_eliminar' u.pk %}" onsubmit="return confirm('¿Eliminar a {{ u.username }}?');">
+              {% csrf_token %}
+              <button class="btn btn-outline" type="submit" style="color:#F87171">ELIMINAR</button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
       </tr>
       {% endfor %}
     </tbody>

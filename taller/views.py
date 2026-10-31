@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
+from django.db.models.deletion import ProtectedError
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
@@ -261,12 +262,19 @@ def cliente_nueva(request):
     return JsonResponse({"id": c.pk, "nombre": c.nombre_completo, "tel": c.telefono})
 
 
+MAX_EMPLEADOS = 3
+
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def usuarios(request):
     User = get_user_model()
+    total = User.objects.filter(is_superuser=False).count()
     return render(request, "taller/usuarios.html", {
         "empleados": User.objects.order_by("username"),
+        "total_empleados": total,
+        "max_empleados": MAX_EMPLEADOS,
+        "puede_agregar": total < MAX_EMPLEADOS,
     })
 
 
@@ -284,6 +292,9 @@ def cliente_detalle(request, pk):
 @user_passes_test(lambda u: u.is_staff)
 def usuario_nuevo(request):
     User = get_user_model()
+    if User.objects.filter(is_superuser=False).count() >= MAX_EMPLEADOS:
+        messages.error(request, f"Límite alcanzado: máximo {MAX_EMPLEADOS} empleados.")
+        return redirect("usuarios")
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password", "")
@@ -303,6 +314,67 @@ def usuario_nuevo(request):
         else:
             messages.error(request, "Usuario y contraseña son obligatorios.")
     return render(request, "taller/usuario_form.html")
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def usuario_editar(request, pk):
+    User = get_user_model()
+    u = get_object_or_404(User, pk=pk)
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        if not username:
+            messages.error(request, "El usuario es obligatorio.")
+        elif User.objects.exclude(pk=u.pk).filter(username=username).exists():
+            messages.error(request, f"El usuario {username} ya existe.")
+        else:
+            u.username = username
+            u.first_name = request.POST.get("first_name", "").strip()
+            u.last_name = request.POST.get("last_name", "").strip()
+            u.is_staff = bool(request.POST.get("es_admin"))
+            nueva = request.POST.get("password", "")
+            if nueva:
+                u.set_password(nueva)
+            u.save()
+            messages.success(request, f"Empleado {u.username} actualizado.")
+            return redirect("usuarios")
+    return render(request, "taller/usuario_form.html", {"edit": True, "u": u})
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def usuario_toggle(request, pk):
+    if request.method != "POST":
+        return redirect("usuarios")
+    User = get_user_model()
+    u = get_object_or_404(User, pk=pk)
+    if u == request.user:
+        messages.error(request, "No puedes desactivar tu propia cuenta.")
+    elif u.is_superuser:
+        messages.error(request, "No se puede desactivar al superadmin.")
+    else:
+        u.is_active = not u.is_active
+        u.save(update_fields=["is_active"])
+        messages.success(request, f"{u.username} {'activado' if u.is_active else 'desactivado'}.")
+    return redirect("usuarios")
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def usuario_eliminar(request, pk):
+    if request.method != "POST":
+        return redirect("usuarios")
+    User = get_user_model()
+    u = get_object_or_404(User, pk=pk)
+    if u == request.user or u.is_superuser:
+        messages.error(request, "Ese usuario no se puede eliminar.")
+    else:
+        try:
+            u.delete()
+            messages.success(request, f"Empleado {u.username} eliminado.")
+        except ProtectedError:
+            messages.error(request, "Tiene cotizaciones registradas — mejor desactívalo.")
+    return redirect("usuarios")
 
 
 @login_required

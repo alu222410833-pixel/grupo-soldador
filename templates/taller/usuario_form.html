@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Nuevo Empleado — Grupo Soldador M.A.M{% endblock %}
+{% block title %}{% if edit %}Editar Empleado{% else %}Nuevo Empleado{% endif %} — Grupo Soldador M.A.M{% endblock %}
 {% block content %}
 <div class="topbar">
   <div>
-    <div class="crumb">Páginas / Usuarios / Nuevo</div>
-    <h1>Nuevo Empleado</h1>
+    <div class="crumb">Páginas / Usuarios / {% if edit %}Editar{% else %}Nuevo{% endif %}</div>
+    <h1>{% if edit %}Editar — {{ u.username }}{% else %}Nuevo Empleado{% endif %}</h1>
   </div>
 </div>
 
@@ -13,7 +13,7 @@
     <div class="fic blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div>
     <div>
       <h2>Credenciales de acceso</h2>
-      <p>El empleado entrará al sistema con su usuario y contraseña.</p>
+      <p>{% if edit %}Deja la contraseña vacía para conservar la actual.{% else %}El empleado entrará al sistema con su usuario y contraseña.{% endif %}</p>
     </div>
   </div>
   <form method="post">
@@ -21,27 +21,27 @@
     <div class="form-grid">
       <div class="field">
         <label>Nombre</label>
-        <input type="text" name="first_name" placeholder="Ej. Carlos">
+        <input type="text" name="first_name" value="{{ u.first_name|default:'' }}" placeholder="Ej. Carlos">
       </div>
       <div class="field">
         <label>Apellidos</label>
-        <input type="text" name="last_name" placeholder="Ej. Pérez">
+        <input type="text" name="last_name" value="{{ u.last_name|default:'' }}" placeholder="Ej. Pérez">
       </div>
       <div class="field">
         <label>Usuario <span class="req">*</span></label>
-        <input type="text" name="username" required placeholder="Ej. jperez">
+        <input type="text" name="username" required value="{{ u.username|default:'' }}" placeholder="Ej. jperez">
       </div>
       <div class="field">
-        <label>Contraseña <span class="req">*</span></label>
-        <input type="password" name="password" required>
+        <label>{% if edit %}Nueva contraseña <span class="muted">(opcional)</span>{% else %}Contraseña <span class="req">*</span>{% endif %}</label>
+        <input type="password" name="password" {% if not edit %}required{% endif %} {% if edit %}placeholder="Sin cambios"{% endif %}>
       </div>
     </div>
     <label class="check">
-      <input type="checkbox" name="es_admin">
+      <input type="checkbox" name="es_admin" {% if u.is_staff %}checked{% endif %}>
       <span>Puede administrar <span class="muted">(acceso al panel /admin/ y gestión de usuarios)</span></span>
     </label>
     <div class="cta-row" style="margin-top:22px;margin-bottom:0">
-      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>CREAR EMPLEADO</button>
+      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>{% if edit %}GUARDAR CAMBIOS{% else %}CREAR EMPLEADO{% endif %}</button>
       <a class="btn btn-outline" href="{% url 'usuarios' %}">CANCELAR</a>
     </div>
   </form>
