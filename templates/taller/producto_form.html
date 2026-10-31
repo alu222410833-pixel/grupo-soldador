@@ -42,15 +42,15 @@
         <input type="hidden" name="categoria" id="f-cat">
         <div id="cat-list" style="display:none;position:absolute;z-index:40;left:0;right:0;max-height:200px;overflow-y:auto;background:#0A1235;border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
         <button type="button" id="btn-newcat" style="margin-top:6px;background:none;border:none;color:var(--blue);font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;padding:0">+ NUEVA CATEGORÍA</button>
-        <div id="newcat" style="display:none;margin-top:8px;gap:6px;align-items:center">
-          <input type="text" id="nc-nombre" placeholder="Nombre" style="flex:1;min-width:0">
-          <select id="nc-parent" title="Categoría padre (opcional)" style="flex:0 0 auto;max-width:140px">
+        <div id="newcat" style="display:none;margin-top:10px;gap:8px;align-items:stretch">
+          <input type="text" id="nc-nombre" placeholder="Nombre de la categoría" style="flex:1;min-width:0;width:auto">
+          <select id="nc-parent" title="Categoría padre (opcional)" style="flex:0 0 170px;width:auto">
             <option value="">Sin padre (raíz)</option>
             {% for c in categorias %}
             <option value="{{ c.pk }}">{{ c.nombre }}</option>
             {% endfor %}
           </select>
-          <button type="button" id="nc-ok" class="btn btn-primary" style="padding:6px 10px;font-size:11px">CREAR</button>
+          <button type="button" id="nc-ok" class="btn btn-primary" style="padding:11px 16px;font-size:12px">CREAR</button>
         </div>
         <p class="muted" id="nc-msg" style="margin:4px 0 0;font-size:11px"></p>
       </div>
