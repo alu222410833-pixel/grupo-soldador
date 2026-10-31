@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ c.nombre_completo }} — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Clientes / {{ c.nombre_completo }}</div>
+    <h1>{{ c.nombre_completo }}</h1>
+  </div>
+  <div class="cta-row" style="margin:0">
+    {% if c.telefono_wa %}<a class="btn btn-primary" style="background:#22C55E" href="https://wa.me/{{ c.telefono_wa }}" target="_blank" rel="noopener"><svg fill="currentColor" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5.1-1.3A10 10 0 1012 2zm5.2 14.1c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1.1-1.4-1.1-2.7s.7-1.9 1-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.1c.1.2.1.4 0 .6l-.4.6-.5.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.4 0 .1 0 .7-.2 1.3z"/></svg>WHATSAPP</a>{% endif %}
+    <a class="btn btn-outline" href="{% url 'clientes' %}">← VOLVER</a>
+  </div>
+</div>
+
+<div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+  <div class="kpi">
+    <div><div class="label">Teléfono</div><div class="value" style="font-size:17px">{{ c.telefono|default:"—" }}</div><div class="sub">{% if c.telefono_wa %}WhatsApp disponible{% endif %}</div></div>
+    <div class="kpi-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h2l2 5-2.5 1.5a12 12 0 005 5L13 12l5 2v2a2 2 0 01-2 2h-1C8.6 18 6 15.4 6 9V8a2 2 0 012-2z"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div><div class="label">Vehículos</div><div class="value">{{ vehiculos|length }}</div><div class="sub">registrados</div></div>
+    <div class="kpi-icon amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 11-4 0 2 2 0 014 0zm12 0a2 2 0 11-4 0 2 2 0 014 0zM3 9h13l3 5v3h-2M3 9v8h3m10-8v8m-7-4h.01"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div><div class="label">Cotizaciones</div><div class="value">{{ cotizaciones|length }}</div><div class="sub">registradas</div></div>
+    <div class="kpi-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 9.4V19a2 2 0 01-2 2z"/></svg></div>
+  </div>
+</div>
+
+<div class="detail-grid" style="grid-template-columns:{% if vehiculos %}1fr 1fr{% else %}1fr{% endif %};margin-bottom:18px">
+  <div class="card" style="padding:18px 20px">
+    <div class="sec-h">DATOS</div>
+    <table class="kv">
+      <tr><td class="muted">Nombre</td><td>{{ c.nombre_completo }}</td></tr>
+      <tr><td class="muted">Teléfono</td><td>{{ c.telefono|default:"—" }}</td></tr>
+      <tr><td class="muted">Email</td><td>{{ c.email|default:"—" }}</td></tr>
+      <tr><td class="muted">Dirección</td><td>{{ c.direccion|default:"—" }}</td></tr>
+      <tr><td class="muted">Registrado</td><td class="muted">{{ c.creado_en|date:"d/m/Y" }}</td></tr>
+    </table>
+  </div>
+  {% if vehiculos %}
+  <div class="card" style="padding:18px 20px">
+    <div class="sec-h">VEHÍCULOS</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px">
+      {% for v in vehiculos %}
+      <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:rgba(255,255,255,.02)">
+        {% if v.imagen %}
+        <img src="{{ v.imagen.url }}" alt="{{ v.descripcion }}" style="width:100%;height:90px;object-fit:cover">
+        {% else %}
+        <div style="height:90px;display:flex;align-items:center;justify-content:center;color:var(--text-sec)"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="width:32px;height:32px"><path stroke-linecap="round" stroke-linejoin="round" d="M8 17a2 2 0 11-4 0 2 2 0 014 0zm12 0a2 2 0 11-4 0 2 2 0 014 0zM3 9h13l3 5v3h-2M3 9v8h3m10-8v8m-7-4h.01"/></svg></div>
+        {% endif %}
+        <div style="padding:8px 10px;font-size:12px">{{ v.descripcion|default:"—" }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="sec-h" style="padding:16px 18px 0">COTIZACIONES</div>
+  <table>
+    <thead><tr><th>Folio</th><th>Vehículo / trabajo</th><th>Estado</th><th class="num">Total</th><th>Fecha</th></tr></thead>
+    <tbody>
+      {% for cot in cotizaciones %}
+      <tr>
+        <td class="folio">{{ cot.folio }}</td>
+        <td>{{ cot.vehiculo|default:"—" }}</td>
+        <td><span class="badge {% if cot.estado == 'APROBADA' %}b-ok{% elif cot.estado == 'RECHAZADA' %}b-bad{% elif cot.estado == 'PENDIENTE' %}b-warn{% else %}b-info{% endif %}">{{ cot.get_estado_display }}</span></td>
+        <td class="num">${{ cot.total|floatformat:2 }}</td>
+        <td class="muted">{{ cot.creado_en|date:"d/m/y" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="empty">Sin cotizaciones todavía.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -25,8 +25,8 @@ if created:
     u.set_password("taller123")
     u.save()
 
-c1, _ = Cliente.objects.get_or_create(nombre="Juan Pérez García", defaults={"telefono": "555-0101"})
-c2, _ = Cliente.objects.get_or_create(nombre="María López Ruiz", defaults={"telefono": "555-0102"})
+c1, _ = Cliente.objects.get_or_create(nombre="Juan Pérez García", defaults={"telefono": "+52 81 8300 1111"})
+c2, _ = Cliente.objects.get_or_create(nombre="María López Ruiz", defaults={"telefono": "+52 81 8300 2222"})
 c3, _ = Cliente.objects.get_or_create(nombre="Carlos Méndez")
 
 # Categorías padre/hijo de ejemplo

@@ -20,6 +20,14 @@ class Cliente(models.Model):
     def nombre_completo(self):
         return " ".join(p for p in (self.nombre, self.apellido_paterno, self.apellido_materno) if p)
 
+    @property
+    def telefono_wa(self):
+        """Número para wa.me — solo dígitos; agrega 52 si es número de 10."""
+        d = "".join(c for c in self.telefono if c.isdigit())
+        if len(d) == 10:
+            d = "52" + d
+        return d if len(d) == 12 and d.startswith("52") else ""
+
     def __str__(self):
         return self.nombre_completo
 

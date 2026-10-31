@@ -117,6 +117,16 @@ def usuarios(request):
 
 
 @login_required
+def cliente_detalle(request, pk):
+    c = get_object_or_404(Cliente.objects.prefetch_related("vehiculos", "cotizaciones"), pk=pk)
+    return render(request, "taller/cliente_detalle.html", {
+        "c": c,
+        "cotizaciones": c.cotizaciones.order_by("-creado_en")[:50],
+        "vehiculos": c.vehiculos.all(),
+    })
+
+
+@login_required
 @user_passes_test(lambda u: u.is_staff)
 def usuario_nuevo(request):
     User = get_user_model()

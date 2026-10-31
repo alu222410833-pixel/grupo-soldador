@@ -20,11 +20,12 @@
 <div class="card">
   <table>
     <thead>
-      <tr><th>Cliente</th><th>Teléfono</th><th>Email</th><th class="num">Vehículos</th><th class="num">Cotizaciones</th><th>Registrado</th></tr>
+      <tr><th></th><th>Cliente</th><th>Teléfono</th><th>Email</th><th class="num">Vehículos</th><th class="num">Cotizaciones</th><th>Registrado</th></tr>
     </thead>
     <tbody>
       {% for c in clientes %}
       <tr>
+        <td style="white-space:nowrap"><a class="eye" href="{% url 'cliente_detalle' c.pk %}" title="Ver detalle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></a>{% if c.telefono_wa %}<a class="wa" href="https://wa.me/{{ c.telefono_wa }}" target="_blank" rel="noopener" title="WhatsApp"><svg fill="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5.1-1.3A10 10 0 1012 2zm5.2 14.1c-.2.6-1.2 1.1-1.7 1.2-.4.1-1 .1-1.6-.1-.4-.1-.9-.3-1.5-.6-2.6-1.1-4.3-3.8-4.4-4-.1-.2-1.1-1.4-1.1-2.7s.7-1.9 1-2.2c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.4l.9 2.1c.1.2.1.4 0 .6l-.4.6-.5.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.3.1.5.1.7-.1l1-1.2c.2-.3.4-.2.7-.1l2 1c.3.1.5.2.6.4 0 .1 0 .7-.2 1.3z"/></svg></a>{% endif %}</td>
         <td><strong>{{ c.nombre_completo }}</strong></td>
         <td class="muted">{{ c.telefono|default:"—" }}</td>
         <td class="muted">{{ c.email|default:"—" }}</td>
@@ -33,7 +34,7 @@
         <td class="muted">{{ c.creado_en|date:"d/m/Y" }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Aún no hay clientes. Registra el primero con el botón de arriba.{% endif %}</td></tr>
+      <tr><td colspan="7" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Aún no hay clientes. Registra el primero con el botón de arriba.{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>
