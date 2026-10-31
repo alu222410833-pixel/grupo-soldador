@@ -115,7 +115,7 @@
         {% for d in lineas %}
         <tr>
           <td class="folio">{{ d.cotizacion.folio }}</td>
-          <td>{{ d.cotizacion.cliente.nombre }}</td>
+          <td>{{ d.cotizacion.cliente.nombre_completo }}</td>
           <td class="num">{{ d.cantidad }}</td>
           <td><span class="badge {% if d.cotizacion.estado == 'APROBADA' %}b-ok{% elif d.cotizacion.estado == 'RECHAZADA' %}b-bad{% elif d.cotizacion.estado == 'PENDIENTE' %}b-warn{% else %}b-info{% endif %}">{{ d.cotizacion.get_estado_display }}</span></td>
           <td class="muted">{{ d.cotizacion.creado_en|date:"d/m/y" }}</td>

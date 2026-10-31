@@ -20,19 +20,20 @@
 <div class="card">
   <table>
     <thead>
-      <tr><th>Cliente</th><th>Teléfono</th><th>Email</th><th class="num">Cotizaciones</th><th>Registrado</th></tr>
+      <tr><th>Cliente</th><th>Teléfono</th><th>Email</th><th class="num">Vehículos</th><th class="num">Cotizaciones</th><th>Registrado</th></tr>
     </thead>
     <tbody>
       {% for c in clientes %}
       <tr>
-        <td><strong>{{ c.nombre }}</strong></td>
+        <td><strong>{{ c.nombre_completo }}</strong></td>
         <td class="muted">{{ c.telefono|default:"—" }}</td>
         <td class="muted">{{ c.email|default:"—" }}</td>
+        <td class="num">{{ c.vehiculos.count }}</td>
         <td class="num">{{ c.num_cotizaciones }}</td>
         <td class="muted">{{ c.creado_en|date:"d/m/Y" }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="5" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Aún no hay clientes. Registra el primero con el botón de arriba.{% endif %}</td></tr>
+      <tr><td colspan="6" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Aún no hay clientes. Registra el primero con el botón de arriba.{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Categoria, Cliente, Producto, Cotizacion, DetalleCotizacion, MovimientoStock
+from .models import Categoria, Cliente, Producto, Cotizacion, DetalleCotizacion, MovimientoStock, VehiculoCliente
 
 
 @admin.register(Categoria)
@@ -51,3 +51,10 @@ class CotizacionAdmin(admin.ModelAdmin):
         if not change:
             obj.creado_por = request.user
         super().save_model(request, obj, form, change)
+
+
+@admin.register(VehiculoCliente)
+class VehiculoClienteAdmin(admin.ModelAdmin):
+    list_display = ("cliente", "descripcion", "creado_en")
+    search_fields = ("cliente__nombre", "descripcion")
+    list_filter = ("creado_en",)

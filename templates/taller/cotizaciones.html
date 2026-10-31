@@ -25,7 +25,7 @@
       {% for c in cotizaciones %}
       <tr>
         <td class="folio">{{ c.folio }}</td>
-        <td>{{ c.cliente.nombre }}</td>
+        <td>{{ c.cliente.nombre_completo }}</td>
         <td class="muted">{{ c.vehiculo }}</td>
         <td class="num">${{ c.total|floatformat:0 }}</td>
         <td>

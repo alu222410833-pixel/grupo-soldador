@@ -24,7 +24,7 @@
         <select name="cliente" required>
           <option value="">— Selecciona —</option>
           {% for c in clientes %}
-          <option value="{{ c.pk }}">{{ c.nombre }}</option>
+          <option value="{{ c.pk }}">{{ c.nombre_completo }}</option>
           {% endfor %}
         </select>
       </div>

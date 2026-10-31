@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
-from .models import Categoria, Cliente, Cotizacion, DetalleCotizacion, MovimientoStock, Producto
+from .models import Categoria, Cliente, Cotizacion, DetalleCotizacion, MovimientoStock, Producto, VehiculoCliente
 
 
 @login_required
@@ -61,7 +61,12 @@ def clientes(request):
     )
     buscar = request.GET.get("q", "").strip()
     if buscar:
-        qs = qs.filter(nombre__icontains=buscar)
+        qs = qs.filter(
+            Q(nombre__icontains=buscar)
+            | Q(apellido_paterno__icontains=buscar)
+            | Q(apellido_materno__icontains=buscar)
+            | Q(telefono__icontains=buscar)
+        )
     return render(request, "taller/clientes.html", {
         "clientes": qs[:200],
         "buscar": buscar,
@@ -73,13 +78,30 @@ def cliente_nuevo(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre", "").strip()
         if nombre:
+            tel = request.POST.get("telefono", "").strip()
+            if tel and not tel.startswith("+52"):
+                tel = "+52 " + tel
             cliente = Cliente.objects.create(
                 nombre=nombre,
-                telefono=request.POST.get("telefono", "").strip(),
+                apellido_paterno=request.POST.get("apellido_paterno", "").strip(),
+                apellido_materno=request.POST.get("apellido_materno", "").strip(),
+                telefono=tel,
                 email=request.POST.get("email", "").strip(),
                 direccion=request.POST.get("direccion", "").strip(),
             )
-            messages.success(request, f"Cliente {cliente.nombre} registrado.")
+            n_veh = 0
+            i = 0
+            while True:
+                desc = request.POST.get(f"veh_desc_{i}")
+                if desc is None:
+                    break
+                img = request.FILES.get(f"veh_img_{i}") or request.FILES.get(f"veh_cam_{i}")
+                if desc.strip() or img:
+                    VehiculoCliente.objects.create(cliente=cliente, descripcion=desc.strip(), imagen=img)
+                    n_veh += 1
+                i += 1
+            extra = f" ({n_veh} vehículo{'s' if n_veh != 1 else ''})" if n_veh else ""
+            messages.success(request, f"Cliente {cliente.nombre_completo} registrado{extra}.")
             return redirect("clientes")
         messages.error(request, "El nombre del cliente es obligatorio.")
     return render(request, "taller/cliente_form.html")

@@ -3,7 +3,9 @@ from django.conf import settings
 
 
 class Cliente(models.Model):
-    nombre = models.CharField(max_length=150)
+    nombre = models.CharField("nombre(s)", max_length=150)
+    apellido_paterno = models.CharField(max_length=100, blank=True)
+    apellido_materno = models.CharField(max_length=100, blank=True)
     telefono = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     direccion = models.CharField(max_length=255, blank=True)
@@ -14,8 +16,28 @@ class Cliente(models.Model):
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"
 
+    @property
+    def nombre_completo(self):
+        return " ".join(p for p in (self.nombre, self.apellido_paterno, self.apellido_materno) if p)
+
     def __str__(self):
-        return self.nombre
+        return self.nombre_completo
+
+
+class VehiculoCliente(models.Model):
+    """Vehículo del cliente — puede tener varios, cada uno con foto."""
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name="vehiculos")
+    descripcion = models.CharField(max_length=200, blank=True,
+        help_text="Ej. Nissan Tsuru 2015 rojo, placas ABC-123")
+    imagen = models.ImageField(upload_to="vehiculos/", blank=True, null=True)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Vehículo"
+        verbose_name_plural = "Vehículos"
+
+    def __str__(self):
+        return self.descripcion or f"Vehículo de {self.cliente}"
 
 
 class Categoria(models.Model):
