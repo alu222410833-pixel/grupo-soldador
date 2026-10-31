@@ -211,6 +211,7 @@ _PREFIJOS_TIPO = {
     Producto.Tipo.PIEZA: "PIE",
     Producto.Tipo.REFACCION: "REF",
     Producto.Tipo.HERRAMIENTA: "HER",
+    Producto.Tipo.MANO_OBRA: "SER",
 }
 
 
@@ -430,10 +431,14 @@ def servicio_nuevo(request):
         elif Producto.objects.filter(codigo=codigo).exists():
             messages.error(request, f"El código {codigo} ya existe.")
         else:
+            incluye = [i.strip() for i in request.POST.getlist("incluye") if i.strip()]
+            descripcion = request.POST.get("descripcion", "").strip()
+            if incluye:
+                descripcion = (descripcion + "\n" if descripcion else "") + "\n".join("• " + i for i in incluye)
             Producto.objects.create(
                 codigo=codigo,
                 nombre=nombre,
-                descripcion=request.POST.get("descripcion", "").strip(),
+                descripcion=descripcion,
                 tipo=Producto.Tipo.MANO_OBRA,
                 precio_unitario=precio,
                 stock=0,
@@ -442,4 +447,6 @@ def servicio_nuevo(request):
             messages.success(request, f"Servicio {codigo} registrado.")
             return redirect("servicios")
 
-    return render(request, "taller/servicio_form.html")
+    return render(request, "taller/servicio_form.html", {
+        "codigo_sugerido": _codigos_siguientes()[Producto.Tipo.MANO_OBRA],
+    })

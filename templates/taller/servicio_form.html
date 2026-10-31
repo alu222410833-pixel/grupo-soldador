@@ -21,7 +21,7 @@
     <div class="form-grid">
       <div class="field">
         <label>Código <span class="req">*</span></label>
-        <input type="text" name="codigo" required placeholder="Ej. MO-SOLD">
+        <input type="text" name="codigo" required value="{{ codigo_sugerido }}">
       </div>
       <div class="field">
         <label>Precio (MXN) <span class="req">*</span></label>
@@ -35,6 +35,15 @@
         <label>Descripción</label>
         <input type="text" name="descripcion" placeholder="Ej. Reparación de estructura, cobro por hora trabajada">
       </div>
+      <div class="field full">
+        <label>¿Qué incluye el servicio?</label>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="inc-input" placeholder="Ej. Soldadura de estructura, preparación, acabado" style="flex:1">
+          <button type="button" id="inc-add" class="btn btn-outline" style="height:42px">+ AGREGAR</button>
+        </div>
+        <div id="inc-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"></div>
+        <p class="muted" style="margin:6px 0 0;font-size:11px">Escribe cada cosa que incluye y presiona AGREGAR — se guarda como lista en el servicio.</p>
+      </div>
     </div>
     <div class="cta-row" style="margin-top:22px;margin-bottom:0">
       <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>GUARDAR SERVICIO</button>
@@ -42,4 +51,29 @@
     </div>
   </form>
 </div>
+<script>
+(function () {
+  const inp = document.getElementById('inc-input');
+  const lista = document.getElementById('inc-list');
+  document.getElementById('inc-add').addEventListener('click', agregar);
+  inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); agregar(); } });
+  function agregar() {
+    const v = inp.value.trim();
+    if (!v) return;
+    const chip = document.createElement('span');
+    chip.style.cssText = 'display:inline-flex;align-items:center;gap:6px;background:rgba(1,181,116,.12);border:1px solid var(--green);color:var(--text);border-radius:20px;padding:5px 12px;font-size:12.5px';
+    const hid = document.createElement('input');
+    hid.type = 'hidden'; hid.name = 'incluye'; hid.value = v;
+    chip.appendChild(document.createTextNode('✓ ' + v));
+    const x = document.createElement('button');
+    x.type = 'button'; x.textContent = '×';
+    x.style.cssText = 'background:none;border:none;color:var(--text-sec);cursor:pointer;font-size:14px;padding:0';
+    x.onclick = () => chip.remove();
+    chip.appendChild(x);
+    chip.appendChild(hid);
+    lista.appendChild(chip);
+    inp.value = ''; inp.focus();
+  }
+})();
+</script>
 {% endblock %}
