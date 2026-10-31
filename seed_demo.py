@@ -7,7 +7,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from django.contrib.auth.models import User
-from taller.models import Cliente, Producto, Cotizacion, DetalleCotizacion
+from taller.models import Categoria, Cliente, Producto, Cotizacion, DetalleCotizacion
 
 admin, _ = User.objects.get_or_create(
     username="admin",
@@ -29,15 +29,31 @@ c1, _ = Cliente.objects.get_or_create(nombre="Juan Pérez García", defaults={"t
 c2, _ = Cliente.objects.get_or_create(nombre="María López Ruiz", defaults={"telefono": "555-0102"})
 c3, _ = Cliente.objects.get_or_create(nombre="Carlos Méndez")
 
+# Categorías padre/hijo de ejemplo
+cat_consum, _ = Categoria.objects.get_or_create(nombre="Consumibles")
+cat_llave, _ = Categoria.objects.get_or_create(nombre="Llave")
+cat_llave_c, _ = Categoria.objects.get_or_create(nombre="Cuadrada", defaults={"parent": cat_llave})
+cat_llave_r, _ = Categoria.objects.get_or_create(nombre="Rectangular", defaults={"parent": cat_llave})
+
 Producto.objects.get_or_create(
     codigo="ELC-7018",
-    defaults={"nombre": 'Electrodo 7018 1/8"', "tipo": "REFACCION",
+    defaults={"nombre": 'Electrodo 7018 1/8"', "tipo": "REFACCION", "categoria": cat_consum,
               "precio_unitario": Decimal("18.50"), "stock": 200, "stock_minimo": 50},
 )
 Producto.objects.get_or_create(
     codigo="DISC-14",
-    defaults={"nombre": 'Disco de corte 14"', "tipo": "HERRAMIENTA",
+    defaults={"nombre": 'Disco de corte 14"', "tipo": "HERRAMIENTA", "categoria": cat_consum,
               "precio_unitario": Decimal("85.00"), "stock": 2, "stock_minimo": 5},
+)
+Producto.objects.get_or_create(
+    codigo="LLV-CUA-20",
+    defaults={"nombre": 'Llave cuadrada 2" para máquina', "tipo": "PIEZA", "categoria": cat_llave_c,
+              "precio_unitario": Decimal("145.00"), "stock": 6, "stock_minimo": 2},
+)
+Producto.objects.get_or_create(
+    codigo="LLV-REC-30",
+    defaults={"nombre": 'Llave rectangular 3" ajustable', "tipo": "PIEZA", "categoria": cat_llave_r,
+              "precio_unitario": Decimal("160.00"), "stock": 4, "stock_minimo": 2},
 )
 Producto.objects.get_or_create(
     codigo="MO-SOLD",

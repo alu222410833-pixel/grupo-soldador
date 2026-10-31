@@ -18,6 +18,25 @@ class Cliente(models.Model):
         return self.nombre
 
 
+class Categoria(models.Model):
+    nombre = models.CharField(max_length=100)
+    parent = models.ForeignKey(
+        "self", on_delete=models.CASCADE,
+        null=True, blank=True, related_name="subcategorias",
+        verbose_name="categoría padre",
+    )
+
+    class Meta:
+        ordering = ["parent__nombre", "nombre"]
+        verbose_name = "Categoría"
+        verbose_name_plural = "Categorías"
+
+    def __str__(self):
+        if self.parent:
+            return f"{self.parent.nombre} › {self.nombre}"
+        return self.nombre
+
+
 class Producto(models.Model):
     class Tipo(models.TextChoices):
         PIEZA = "PIEZA", "Pieza"
@@ -28,6 +47,12 @@ class Producto(models.Model):
     codigo = models.CharField("SKU / código", max_length=30, unique=True)
     nombre = models.CharField(max_length=150)
     descripcion = models.TextField(blank=True)
+    categoria = models.ForeignKey(
+        Categoria, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="productos",
+        verbose_name="categoría",
+    )
+    imagen = models.ImageField(upload_to="productos/", blank=True, null=True)
     tipo = models.CharField(max_length=15, choices=Tipo.choices, default=Tipo.PIEZA)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)

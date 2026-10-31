@@ -5,6 +5,7 @@ urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("inventario/", views.inventario, name="inventario"),
     path("inventario/nuevo/", views.producto_nuevo, name="producto_nuevo"),
+    path("servicios/", views.servicios, name="servicios"),
     path("cotizaciones/", views.cotizaciones, name="cotizaciones"),
     path("cotizaciones/nueva/", views.cotizacion_nueva, name="cotizacion_nueva"),
     path("clientes/", views.clientes, name="clientes"),
@@ -12,4 +13,5 @@ urlpatterns = [
     path("usuarios/", views.usuarios, name="usuarios"),
     path("usuarios/nuevo/", views.usuario_nuevo, name="usuario_nuevo"),
     path("administracion/", views.administracion, name="administracion"),
+    path("administracion/categorias/", views.categorias, name="categorias"),
 ]

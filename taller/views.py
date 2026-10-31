@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count
 from django.utils import timezone
-from .models import Cliente, Cotizacion, DetalleCotizacion, Producto
+from .models import Categoria, Cliente, Cotizacion, DetalleCotizacion, Producto
 
 
 @login_required
@@ -118,7 +118,7 @@ def usuario_nuevo(request):
 @login_required
 def cotizacion_nueva(request):
     if request.method == "POST":
-        cliente = Cliente.objects.filter(pk=request.POST.get("cliente")).first()
+        cliente = Cliente.objects.filter(pk=request.POST.get("cliente") or 0).first()
         vehiculo = request.POST.get("vehiculo", "").strip()
         estado = request.POST.get("estado", "")
         if estado not in Cotizacion.Estado.values:
@@ -126,7 +126,7 @@ def cotizacion_nueva(request):
 
         detalles = []
         for pid, cant in zip(request.POST.getlist("producto"), request.POST.getlist("cantidad")):
-            producto = Producto.objects.filter(pk=pid).first()
+            producto = Producto.objects.filter(pk=pid or 0).first()
             if producto and cant.isdigit() and int(cant) > 0:
                 detalles.append((producto, int(cant)))
 
@@ -177,19 +177,25 @@ def producto_nuevo(request):
         else:
             stock = request.POST.get("stock", "0")
             stock_min = request.POST.get("stock_minimo", "3")
+            tipo = request.POST.get("tipo") or Producto.Tipo.PIEZA
             Producto.objects.create(
                 codigo=codigo,
                 nombre=nombre,
-                tipo=request.POST.get("tipo") or Producto.Tipo.PIEZA,
+                tipo=tipo,
+                categoria=Categoria.objects.filter(pk=request.POST.get("categoria") or 0).first(),
                 precio_unitario=precio,
                 stock=int(stock) if stock.isdigit() else 0,
                 stock_minimo=int(stock_min) if stock_min.isdigit() else 3,
+                imagen=request.FILES.get("imagen"),
             )
-            messages.success(request, f"Producto {codigo} registrado en el inventario.")
-            return redirect("inventario")
+            messages.success(request, f"Producto {codigo} registrado.")
+            return redirect("servicios" if tipo == Producto.Tipo.MANO_OBRA else "inventario")
 
+    tipo_inicial = request.GET.get("tipo", "")
     return render(request, "taller/producto_form.html", {
         "tipos": Producto.Tipo.choices,
+        "tipo_inicial": tipo_inicial if tipo_inicial in Producto.Tipo.values else "",
+        "categorias": Categoria.objects.prefetch_related("subcategorias").filter(parent__isnull=True),
     })
 
 
@@ -206,13 +212,39 @@ def administracion(request):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_staff)
+def categorias(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        if nombre:
+            Categoria.objects.create(
+                nombre=nombre,
+                parent=Categoria.objects.filter(pk=request.POST.get("parent") or 0).first(),
+            )
+            messages.success(request, f"Categoría {nombre} creada.")
+            return redirect("categorias")
+        messages.error(request, "El nombre de la categoría es obligatorio.")
+    return render(request, "taller/categorias.html", {
+        "categorias": Categoria.objects.prefetch_related("subcategorias", "productos")
+                                       .filter(parent__isnull=True),
+    })
+
+
+@login_required
 def inventario(request):
     tipo = request.GET.get("tipo", "")
-    qs = Producto.objects.all()
+    qs = Producto.objects.select_related("categoria").exclude(tipo=Producto.Tipo.MANO_OBRA)
     if tipo:
         qs = qs.filter(tipo=tipo)
     return render(request, "taller/inventario.html", {
         "productos": qs[:200],
-        "tipos": Producto.Tipo.choices,
+        "tipos": [(v, l) for v, l in Producto.Tipo.choices if v != Producto.Tipo.MANO_OBRA],
         "tipo_actual": tipo,
+    })
+
+
+@login_required
+def servicios(request):
+    return render(request, "taller/servicios.html", {
+        "servicios": Producto.objects.filter(tipo=Producto.Tipo.MANO_OBRA)[:200],
     })

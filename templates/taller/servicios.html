@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Servicios — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Servicios</div>
+    <h1>Servicios · Mano de obra</h1>
+  </div>
+  <a class="btn btn-primary" href="{% url 'producto_nuevo' %}?tipo=MANO_OBRA">+ NUEVO SERVICIO</a>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Código</th><th>Nombre</th><th class="num">Precio</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for s in servicios %}
+      <tr>
+        <td class="folio">{{ s.codigo }}</td>
+        <td>{{ s.nombre }}</td>
+        <td class="num">${{ s.precio_unitario|floatformat:2 }}</td>
+        <td>{% if s.activo %}<span class="badge b-ok">Disponible</span>{% else %}<span class="badge b-grey">Inactivo</span>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="empty">Sin servicios. Regístralos desde "Nuevo Servicio".</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

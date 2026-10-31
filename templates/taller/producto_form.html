@@ -4,7 +4,7 @@
 <div class="topbar">
   <div>
     <div class="crumb">Páginas / Inventario / Nuevo</div>
-    <h1>Nuevo Producto</h1>
+    <h1>{% if tipo_inicial == 'MANO_OBRA' %}Nuevo Servicio{% else %}Nuevo Producto{% endif %}</h1>
   </div>
 </div>
 
@@ -12,11 +12,11 @@
   <div class="form-head">
     <div class="fic blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v10M4 7v10l8 4"/></svg></div>
     <div>
-      <h2>Producto o servicio</h2>
+      <h2>{% if tipo_inicial == 'MANO_OBRA' %}Servicio de mano de obra{% else %}Producto o servicio{% endif %}</h2>
       <p>Se mostrará en el inventario y al cotizar.</p>
     </div>
   </div>
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="form-grid">
       <div class="field">
@@ -27,13 +27,29 @@
         <label>Tipo <span class="req">*</span></label>
         <select name="tipo">
           {% for valor, etiqueta in tipos %}
-          <option value="{{ valor }}">{{ etiqueta }}</option>
+          <option value="{{ valor }}" {% if tipo_inicial == valor %}selected{% endif %}>{{ etiqueta }}</option>
           {% endfor %}
         </select>
       </div>
       <div class="field full">
         <label>Nombre <span class="req">*</span></label>
         <input type="text" name="nombre" required placeholder="Ej. Electrodo 7018 1/8 pulgada">
+      </div>
+      <div class="field">
+        <label>Categoría</label>
+        <select name="categoria">
+          <option value="">— Sin categoría —</option>
+          {% for c in categorias %}
+          <option value="{{ c.pk }}">{{ c.nombre }}</option>
+          {% for h in c.subcategorias.all %}
+          <option value="{{ h.pk }}">&nbsp;&nbsp;{{ c.nombre }} › {{ h.nombre }}</option>
+          {% endfor %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Foto del producto</label>
+        <input type="file" name="imagen" accept="image/*">
       </div>
       <div class="field">
         <label>Precio unitario (MXN) <span class="req">*</span></label>
@@ -49,7 +65,7 @@
       </div>
     </div>
     <div class="cta-row" style="margin-top:22px;margin-bottom:0">
-      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>GUARDAR PRODUCTO</button>
+      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>GUARDAR</button>
       <a class="btn btn-outline" href="{% url 'inventario' %}">CANCELAR</a>
     </div>
   </form>
