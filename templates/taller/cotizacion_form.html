@@ -102,6 +102,13 @@
     <div class="cli-body">
       <input type="text" id="prod-search" class="cli-in" placeholder="Buscar por código o nombre…">
       <div id="prod-tips" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"></div>
+      <button type="button" id="libre-toggle" class="btn btn-outline" style="width:100%;margin-top:10px;justify-content:center;font-size:12px">✎ PARTIDA LIBRE — trabajo que no está en el catálogo</button>
+      <div id="libre-new" class="cli-new-form" style="display:none">
+        <input type="text" id="lib-desc" class="cli-in" placeholder="¿Qué trabajo es? Ej. Reparación de bisagra en sitio" style="margin-bottom:8px">
+        <input type="number" id="lib-precio" class="cli-in" placeholder="Precio por unidad ($)" step="0.01" min="0" style="margin-bottom:8px">
+        <button type="button" id="lib-ok" class="btn btn-primary" style="width:100%;justify-content:center;font-size:12px">USAR EN ESTA PARTIDA</button>
+        <p id="lib-err" class="muted" style="margin:6px 0 0;font-size:11px;color:var(--red)"></p>
+      </div>
     </div>
     <div id="prod-list" class="cli-list"></div>
   </div>
@@ -110,13 +117,15 @@
 {{ productos_map|json_script:"prod-map" }}
 <template id="row-tpl">
   <tr>
-    <td>
+    <td data-l="Producto / Servicio">
       <input type="hidden" name="producto" class="prod-hid">
+      <input type="hidden" name="libre_desc" class="libre-desc">
+      <input type="hidden" name="libre_precio" class="libre-precio">
       <button type="button" class="prod-btn cli-btn">— Selecciona producto o servicio —</button>
     </td>
-    <td><input type="number" name="cantidad" class="cant" min="1" value="1"></td>
-    <td class="num punit muted">$0.00</td>
-    <td class="num psub">$0.00</td>
+    <td data-l="Cantidad"><input type="number" name="cantidad" class="cant" min="1" value="1"></td>
+    <td data-l="P. unitario" class="num punit muted">$0.00</td>
+    <td data-l="Subtotal" class="num psub">$0.00</td>
     <td><button type="button" class="rm" title="Quitar">×</button></td>
   </tr>
 </template>
@@ -180,6 +189,8 @@
   function elegirProd(p) {
     if (pRow) {
       pRow.querySelector('.prod-hid').value = p.id;
+      pRow.querySelector('.libre-desc').value = '';
+      pRow.querySelector('.libre-precio').value = '';
       const btn = pRow.querySelector('.prod-btn');
       btn.textContent = p.codigo + ' — ' + p.nombre;
       btn.style.borderColor = 'var(--blue)';
@@ -188,12 +199,40 @@
     recalc();
   }
 
+  document.getElementById('libre-toggle').addEventListener('click', () => {
+    const f = document.getElementById('libre-new');
+    f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('lib-ok').addEventListener('click', () => {
+    const desc = document.getElementById('lib-desc').value.trim();
+    const precio = document.getElementById('lib-precio').value.trim();
+    const err = document.getElementById('lib-err');
+    if (!desc) { err.textContent = 'Describe el trabajo.'; return; }
+    if (!precio || parseFloat(precio) < 0 || isNaN(parseFloat(precio))) { err.textContent = 'Pon un precio válido.'; return; }
+    err.textContent = '';
+    if (pRow) {
+      pRow.querySelector('.prod-hid').value = '';
+      pRow.querySelector('.libre-desc').value = desc;
+      pRow.querySelector('.libre-precio').value = precio;
+      const btn = pRow.querySelector('.prod-btn');
+      btn.textContent = '✎ ' + desc + ' (partida libre)';
+      btn.style.borderColor = 'var(--accent)';
+    }
+    document.getElementById('lib-desc').value = '';
+    document.getElementById('lib-precio').value = '';
+    pPop.style.display = 'none';
+    recalc();
+  });
+
   function recalc() {
     let total = 0;
     tbody.querySelectorAll('tr').forEach(tr => {
       const hid = tr.querySelector('.prod-hid');
       const p = prodById[hid && hid.value];
-      const precio = p ? p.precio : 0;
+      let precio = p ? p.precio : 0;
+      if (!p) {
+        precio = parseFloat(tr.querySelector('.libre-precio').value) || 0;
+      }
       const cant = parseFloat(tr.querySelector('.cant').value) || 0;
       const sub = precio * cant;
       tr.querySelector('.punit').textContent = fmt(precio);

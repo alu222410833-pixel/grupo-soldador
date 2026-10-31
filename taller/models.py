@@ -165,7 +165,11 @@ class Cotizacion(models.Model):
 
 class DetalleCotizacion(models.Model):
     cotizacion = models.ForeignKey(Cotizacion, on_delete=models.CASCADE, related_name="detalles")
-    producto = models.ForeignKey(Producto, on_delete=models.PROTECT)
+    producto = models.ForeignKey(Producto, on_delete=models.PROTECT, null=True, blank=True)
+    descripcion = models.CharField(
+        "descripción (partida libre)", max_length=300, blank=True,
+        help_text="Se usa cuando la partida no es un producto del catálogo"
+    )
     cantidad = models.PositiveIntegerField(default=1)
     precio_unitario = models.DecimalField(
         max_digits=10, decimal_places=2,
@@ -177,15 +181,19 @@ class DetalleCotizacion(models.Model):
         verbose_name_plural = "Detalles de cotización"
 
     @property
+    def concepto(self):
+        return self.producto.nombre if self.producto else self.descripcion
+
+    @property
     def subtotal(self):
         if self.precio_unitario is None:
             return None
         return self.cantidad * self.precio_unitario
 
     def save(self, *args, **kwargs):
-        if self.precio_unitario is None:
+        if self.precio_unitario is None and self.producto is not None:
             self.precio_unitario = self.producto.precio_unitario
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.cantidad} × {self.producto.nombre}"
+        return f"{self.cantidad} × {self.concepto}"

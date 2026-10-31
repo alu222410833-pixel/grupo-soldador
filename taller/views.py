@@ -185,10 +185,23 @@ def cotizacion_nueva(request):
             estado = Cotizacion.Estado.BORRADOR
 
         detalles = []
-        for pid, cant in zip(request.POST.getlist("producto"), request.POST.getlist("cantidad")):
+        for pid, cant, ldesc, lprecio in zip(
+            request.POST.getlist("producto"), request.POST.getlist("cantidad"),
+            request.POST.getlist("libre_desc"), request.POST.getlist("libre_precio"),
+        ):
             producto = Producto.objects.filter(pk=pid or 0).first()
-            if producto and cant.isdigit() and int(cant) > 0:
-                detalles.append((producto, int(cant)))
+            if not (cant.isdigit() and int(cant) > 0):
+                continue
+            if producto:
+                detalles.append({"producto": producto, "cantidad": int(cant)})
+            elif ldesc.strip():
+                try:
+                    precio = Decimal(lprecio)
+                except (InvalidOperation, TypeError):
+                    precio = None
+                if precio is not None and precio >= 0:
+                    detalles.append({"descripcion": ldesc.strip(), "precio": precio,
+                                     "cantidad": int(cant)})
 
         if not cliente:
             messages.error(request, "Selecciona un cliente.")
@@ -204,9 +217,13 @@ def cotizacion_nueva(request):
                 notas=request.POST.get("notas", "").strip(),
                 creado_por=request.user,
             )
-            for producto, cant in detalles:
+            for d in detalles:
                 DetalleCotizacion.objects.create(
-                    cotizacion=cot, producto=producto, cantidad=cant
+                    cotizacion=cot,
+                    producto=d.get("producto"),
+                    descripcion=d.get("descripcion", ""),
+                    cantidad=d["cantidad"],
+                    precio_unitario=d.get("precio"),
                 )
             messages.success(request, f"Cotización {cot.folio} creada — ${cot.total:,.2f} MXN.")
             return redirect("cotizaciones")
