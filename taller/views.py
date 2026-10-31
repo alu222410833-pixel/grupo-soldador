@@ -201,7 +201,6 @@ def producto_nuevo(request):
         "tipos": tipos_fisicos,
         "tipo_inicial": tipo_inicial if tipo_inicial in dict(tipos_fisicos) else "",
         "codigos_siguientes": _codigos_siguientes(),
-        "categorias": Categoria.objects.prefetch_related("subcategorias").filter(parent__isnull=True),
         "categorias_flat": [{"id": c.pk, "label": str(c)} for c in Categoria.objects.select_related("parent")],
     })
 
