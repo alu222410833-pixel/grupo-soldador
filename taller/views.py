@@ -4,6 +4,8 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
@@ -315,6 +317,12 @@ def usuario_nuevo(request):
             if User.objects.filter(username=username).exists():
                 messages.error(request, f"El usuario {username} ya existe.")
             else:
+                try:
+                    validate_password(password)
+                except ValidationError as e:
+                    for err in e.messages:
+                        messages.error(request, err)
+                    return render(request, "taller/usuario_form.html")
                 User.objects.create_user(
                     username=username,
                     password=password,
@@ -347,6 +355,12 @@ def usuario_editar(request, pk):
             u.is_staff = bool(request.POST.get("es_admin"))
             nueva = request.POST.get("password", "")
             if nueva:
+                try:
+                    validate_password(nueva, user=u)
+                except ValidationError as e:
+                    for err in e.messages:
+                        messages.error(request, err)
+                    return render(request, "taller/usuario_form.html", {"edit": True, "u": u})
                 u.set_password(nueva)
             u.save()
             messages.success(request, f"Empleado {u.username} actualizado.")
