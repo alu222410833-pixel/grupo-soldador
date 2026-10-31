@@ -13,7 +13,10 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser   # crea tu usuario admin (admin / tu contraseña)
 python seed_demo.py          # datos de ejemplo (opcional)
-python manage.py collectstatic --noinput
+
+# collectstatic SIEMPRE con las variables de producción,
+# si no el manifiesto de estáticos queda incompleto y las imágenes no cargan
+DJANGO_DEBUG=0 DJANGO_SECRET_KEY="x" DJANGO_ALLOWED_HOSTS="tuusuario.pythonanywhere.com" python manage.py collectstatic --noinput
 ```
 
 ## 2. Variables de entorno (en el archivo WSGI de PythonAnywhere)
@@ -48,6 +51,16 @@ application = get_wsgi_application()
 | `/media/`   | `/home/tuusuario/grupo-soldador/media`       |
 
 **Reload** y listo: `https://tuusuario.pythonanywhere.com`.
+
+## Actualizar después de `git pull`
+
+```bash
+cd ~/grupo-soldador && git pull && source venv/bin/activate
+python manage.py migrate
+DJANGO_DEBUG=0 DJANGO_SECRET_KEY="x" DJANGO_ALLOWED_HOSTS="tuusuario.pythonanywhere.com" python manage.py collectstatic --noinput
+```
+
+Y botón **Reload** en la pestaña Web.
 
 ## Notas
 
