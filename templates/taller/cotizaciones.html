@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Cotizaciones — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Cotizaciones</div>
+    <h1>Cotizaciones</h1>
+  </div>
+  <a class="btn btn-primary" href="/admin/taller/cotizacion/add/">+ NUEVA COTIZACIÓN</a>
+</div>
+
+<div class="filters">
+  <a href="{% url 'cotizaciones' %}" class="{% if not estado_actual %}on{% endif %}">Todas</a>
+  {% for valor, etiqueta in estados %}
+  <a href="?estado={{ valor }}" class="{% if estado_actual == valor %}on{% endif %}">{{ etiqueta }}</a>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Folio</th><th>Cliente</th><th>Vehículo / Servicio</th><th class="num">Monto</th><th>Estado</th><th>Fecha</th></tr>
+    </thead>
+    <tbody>
+      {% for c in cotizaciones %}
+      <tr>
+        <td class="folio">{{ c.folio }}</td>
+        <td>{{ c.cliente.nombre }}</td>
+        <td class="muted">{{ c.vehiculo }}</td>
+        <td class="num">${{ c.total|floatformat:0 }}</td>
+        <td>
+          {% if c.estado == 'APROBADA' %}<span class="badge b-ok">Aprobada</span>
+          {% elif c.estado == 'PENDIENTE' %}<span class="badge b-warn">Pendiente</span>
+          {% elif c.estado == 'RECHAZADA' %}<span class="badge b-bad">Rechazada</span>
+          {% elif c.estado == 'EN_PROCESO' %}<span class="badge b-info">En proceso</span>
+          {% else %}<span class="badge b-grey">Borrador</span>{% endif %}
+        </td>
+        <td class="muted">{{ c.creado_en|date:"d/m/Y H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="empty">No hay cotizaciones con este filtro.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

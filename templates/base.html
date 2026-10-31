@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Grupo Soldador M.A.M{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #F97316;
+    --blue: #0075FF;
+    --green: #01B574;
+    --amber: #FFB547;
+    --red: #E31A1A;
+    --text: #FFFFFF;
+    --text-sec: #A0AEC0;
+    --border: rgba(255,255,255,.08);
+    --radius: 15px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    color: var(--text); font-size: 14px; min-height: 100vh; display: flex;
+    background:
+      radial-gradient(1200px 500px at 80% -10%, rgba(0,117,255,.25), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(33,212,253,.12), transparent 55%),
+      #060D26;
+  }
+
+  .sidebar {
+    width: 230px; flex-shrink: 0; padding: 28px 16px;
+    display: flex; flex-direction: column;
+    background: linear-gradient(180deg, rgba(6,15,44,.9), rgba(6,12,38,.6));
+    border-right: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 18px; border-bottom: 1px solid var(--border); }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), #FF9A3C);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; color: #060D26;
+    box-shadow: 0 0 18px rgba(249,115,22,.45);
+  }
+  .brand-name { font-weight: 700; font-size: 13.5px; letter-spacing: .02em; }
+  .brand-name small { display: block; font-weight: 500; font-size: 10.5px; color: var(--text-sec); letter-spacing: .12em; }
+
+  .user { display: flex; align-items: center; gap: 10px; padding: 16px 8px; border-bottom: 1px solid var(--border); }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: linear-gradient(135deg, #2B3E7A, #1A2451);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .user strong { display: block; font-size: 13px; font-weight: 600; }
+  .user small { font-size: 11px; color: var(--text-sec); }
+  .online { color: var(--green); }
+
+  nav { flex: 1; padding: 14px 0; }
+  .nav-label { padding: 14px 10px 8px; font-size: 10px; font-weight: 700; letter-spacing: .1em; color: var(--text-sec); text-transform: uppercase; }
+  .nav-item {
+    display: flex; align-items: center; gap: 11px;
+    padding: 10px 12px; margin-bottom: 4px; border-radius: 12px;
+    color: var(--text-sec); text-decoration: none;
+    font-size: 13.5px; font-weight: 500; transition: background .15s, color .15s;
+  }
+  .nav-item .ic {
+    width: 30px; height: 30px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.05);
+  }
+  .nav-item .ic svg { width: 15px; height: 15px; }
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,.05); }
+  .nav-item.active { color: #fff; }
+  .nav-item.active .ic { background: var(--blue); box-shadow: 0 0 14px rgba(0,117,255,.55); }
+  .nav-bottom form button {
+    display: flex; align-items: center; gap: 11px; width: 100%;
+    padding: 10px 12px; border-radius: 12px; border: none; background: none;
+    color: var(--text-sec); font-family: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
+  }
+  .nav-bottom form button:hover { color: #fff; background: rgba(255,255,255,.05); }
+  .nav-bottom .ic {
+    width: 30px; height: 30px; border-radius: 9px; background: rgba(255,255,255,.05);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav-bottom .ic svg { width: 15px; height: 15px; }
+
+  .main { flex: 1; padding: 26px 30px; min-width: 0; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+  .crumb { font-size: 11.5px; color: var(--text-sec); margin-bottom: 4px; }
+  .topbar h1 { font-size: 15px; font-weight: 700; }
+
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 18px; }
+  .kpi {
+    background: linear-gradient(127deg, #060C28 0%, #0A1235 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .kpi .label { font-size: 11.5px; font-weight: 600; color: var(--text-sec); }
+  .kpi .value { font-size: 21px; font-weight: 700; margin-top: 6px; }
+  .kpi .delta { font-size: 12px; font-weight: 600; margin-left: 6px; }
+  .delta.up { color: var(--green); } .delta.warn { color: var(--amber); } .delta.down { color: var(--red); }
+  .kpi .sub { font-size: 12px; color: var(--text-sec); margin-top: 3px; }
+  .kpi-icon {
+    width: 45px; height: 45px; border-radius: 12px; flex-shrink: 0;
+    background: var(--blue); box-shadow: 0 0 20px rgba(0,117,255,.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .kpi-icon svg { width: 20px; height: 20px; color: #fff; }
+  .kpi-icon.amber { background: #B45309; box-shadow: 0 0 20px rgba(255,181,71,.35); }
+  .kpi-icon.red { background: #B91C1C; box-shadow: 0 0 20px rgba(227,26,26,.4); }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+  .pulse { animation: pulse 1.6s ease-in-out infinite; }
+
+  .cta-row { display: flex; gap: 14px; margin-bottom: 20px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+    height: 46px; padding: 0 24px; border-radius: 12px;
+    font-family: inherit; font-size: 13px; font-weight: 700;
+    letter-spacing: .02em; cursor: pointer; text-decoration: none;
+    transition: transform .12s, box-shadow .12s;
+  }
+  .btn svg { width: 15px; height: 15px; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #FF8A00);
+    color: #fff; border: none; box-shadow: 0 4px 20px rgba(249,115,22,.4);
+  }
+  .btn-primary:hover { box-shadow: 0 6px 26px rgba(249,115,22,.55); }
+  .btn-outline { background: transparent; color: #fff; border: 1.5px solid var(--blue); }
+  .btn-outline:hover { background: rgba(0,117,255,.12); }
+
+  .filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filters a {
+    padding: 7px 16px; border-radius: 10px; font-size: 12.5px; font-weight: 600;
+    text-decoration: none; color: var(--text-sec);
+    border: 1px solid var(--border); background: #0F1534;
+  }
+  .filters a.on { background: var(--blue); color: #fff; border-color: var(--blue); box-shadow: 0 0 14px rgba(0,117,255,.4); }
+
+  .card {
+    background: linear-gradient(127deg, #060C28 0%, #0A1235 100%);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px;
+  }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+  .card-head h2 { font-size: 14.5px; font-weight: 700; }
+  .card-head .ok { font-size: 11.5px; color: var(--green); font-weight: 600; margin-top: 3px; }
+  .card-head a { font-size: 12px; color: var(--text-sec); text-decoration: none; }
+  .card-head a:hover { color: #fff; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th {
+    text-align: left; font-size: 10px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: .09em;
+    color: #718096; padding: 10px 12px; border-bottom: 1px solid var(--border);
+  }
+  td { padding: 13px 12px; border-bottom: 1px solid rgba(255,255,255,.05); font-size: 13px; }
+  tr:last-child td { border-bottom: none; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--text-sec); }
+  .folio { color: #7EB8FF; font-weight: 600; }
+
+  .badge { display: inline-block; padding: 4px 11px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+  .b-ok { background: rgba(1,181,116,.15); color: var(--green); }
+  .b-warn { background: rgba(255,181,71,.14); color: var(--amber); }
+  .b-bad { background: rgba(227,26,26,.14); color: #F56565; }
+  .b-info { background: rgba(0,117,255,.16); color: #4FC3F7; }
+  .b-grey { background: rgba(160,174,192,.12); color: var(--text-sec); }
+
+  .empty { padding: 40px; text-align: center; color: var(--text-sec); }
+
+  /* ---------- Formularios ---------- */
+  .form-card { max-width: 520px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .05em; color: var(--text-sec); margin-bottom: 6px; text-transform: uppercase; }
+  .field input, .field select {
+    width: 100%; padding: 11px 14px;
+    background: #0F1534; border: 1px solid var(--border);
+    border-radius: 10px; color: #fff;
+    font-family: inherit; font-size: 13.5px; outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--blue); box-shadow: 0 0 12px rgba(0,117,255,.3); }
+  .check { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-size: 13px; color: var(--text-sec); }
+  .check input { width: 16px; height: 16px; accent-color: var(--accent); }
+
+  .alert {
+    padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    margin-bottom: 16px; border: 1px solid transparent;
+  }
+  .alert-ok { background: rgba(1,181,116,.12); color: var(--green); border-color: rgba(1,181,116,.3); }
+  .alert-err { background: rgba(227,26,26,.12); color: #F56565; border-color: rgba(227,26,26,.3); }
+
+  .search-form { display: flex; gap: 10px; }
+  .search-form input {
+    width: 260px; padding: 10px 14px;
+    background: #0F1534; border: 1px solid var(--border);
+    border-radius: 10px; color: #fff; font-family: inherit; font-size: 13px; outline: none;
+  }
+  .search-form input:focus { border-color: var(--blue); }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-mark">M</div>
+    <div class="brand-name">GRUPO SOLDADOR<small>M.A.M</small></div>
+  </div>
+  <div class="user">
+    <div class="avatar">{{ request.user.first_name|slice:":1" }}{{ request.user.last_name|slice:":1" }}</div>
+    <div>
+      <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+      <small>Administrador · <span class="online">En línea</span></small>
+    </div>
+  </div>
+  <nav>
+    <div class="nav-label">Menú</div>
+    <a class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><span class="ic"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10h4v-6h6v6h4V10"/></svg></span>Dashboard</a>
+    <a class="nav-item {% if request.resolver_match.url_name == 'inventario' %}active{% endif %}" href="{% url 'inventario' %}"><span class="ic"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v10M4 7v10l8 4"/></svg></span>Inventario</a>
+    <a class="nav-item {% if request.resolver_match.url_name == 'cotizaciones' %}active{% endif %}" href="{% url 'cotizaciones' %}"><span class="ic"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 9.4V19a2 2 0 01-2 2z"/></svg></span>Cotizaciones</a>
+    <a class="nav-item {% if request.resolver_match.url_name == 'clientes' or request.resolver_match.url_name == 'cliente_nuevo' %}active{% endif %}" href="{% url 'clientes' %}"><span class="ic"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.9M9 20H4v-2a4 4 0 013-3.9m6-1.1a4 4 0 10-4-4 4 4 0 004 4z"/></svg></span>Clientes</a>
+    <div class="nav-label">Sistema</div>
+    {% if request.user.is_staff %}
+    <a class="nav-item {% if request.resolver_match.url_name == 'usuarios' or request.resolver_match.url_name == 'usuario_nuevo' %}active{% endif %}" href="{% url 'usuarios' %}"><span class="ic"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></span>Usuarios</a>
+    {% endif %}
+    <a class="nav-item" href="/admin/"><span class="ic"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.9 2.9l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.9-2.9l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.9-2.9l.1.1a1.7 1.7 0 001.9.3 1.7 1.7 0 001-1.5V3a2 2 0 114 0v.2a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.9 2.9l-.1.1a1.7 1.7 0 00-.3 1.9 1.7 1.7 0 001.5 1h.2a2 2 0 110 4h-.2a1.7 1.7 0 00-1.5 1z"/></svg></span>Administración</a>
+  </nav>
+  <div class="nav-bottom">
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+      <button type="submit"><span class="ic"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></span>Cerrar Sesión</button>
+    </form>
+  </div>
+</aside>
+<main class="main">
+  {% if messages %}
+    {% for m in messages %}
+      <div class="alert {% if m.tags == 'success' %}alert-ok{% else %}alert-err{% endif %}">{{ m }}</div>
+    {% endfor %}
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

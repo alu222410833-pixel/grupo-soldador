@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Empleado — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Usuarios / Nuevo</div>
+    <h1>Nuevo Empleado</h1>
+  </div>
+</div>
+
+<div class="card form-card">
+  <div class="card-head" style="padding-left:0;padding-right:0"><h2>Credenciales de acceso</h2></div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" name="first_name" placeholder="Ej. Carlos">
+      </div>
+      <div class="field">
+        <label>Apellidos</label>
+        <input type="text" name="last_name" placeholder="Ej. Pérez">
+      </div>
+      <div class="field">
+        <label>Usuario *</label>
+        <input type="text" name="username" required placeholder="Ej. jperez">
+      </div>
+      <div class="field">
+        <label>Contraseña *</label>
+        <input type="password" name="password" required>
+      </div>
+    </div>
+    <label class="check">
+      <input type="checkbox" name="es_admin">
+      Puede administrar (acceso al panel /admin/ y gestión de usuarios)
+    </label>
+    <div class="cta-row" style="margin-top:22px;margin-bottom:0">
+      <button class="btn btn-primary" type="submit">CREAR EMPLEADO</button>
+      <a class="btn btn-outline" href="{% url 'usuarios' %}">CANCELAR</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

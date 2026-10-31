@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Cliente — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Clientes / Nuevo</div>
+    <h1>Registrar Cliente</h1>
+  </div>
+</div>
+
+<div class="card form-card">
+  <div class="card-head" style="padding-left:0;padding-right:0"><h2>Datos del cliente</h2></div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field full">
+        <label>Nombre completo *</label>
+        <input type="text" name="nombre" required placeholder="Ej. Juan Pérez García">
+      </div>
+      <div class="field">
+        <label>Teléfono</label>
+        <input type="text" name="telefono" placeholder="555-0000">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="correo@ejemplo.com">
+      </div>
+      <div class="field full">
+        <label>Dirección</label>
+        <input type="text" name="direccion" placeholder="Calle, número, colonia">
+      </div>
+    </div>
+    <div class="cta-row" style="margin-top:22px;margin-bottom:0">
+      <button class="btn btn-primary" type="submit">GUARDAR CLIENTE</button>
+      <a class="btn btn-outline" href="{% url 'clientes' %}">CANCELAR</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Usuarios — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Usuarios</div>
+    <h1>Usuarios del sistema</h1>
+  </div>
+  <a class="btn btn-primary" href="{% url 'usuario_nuevo' %}"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>NUEVO EMPLEADO</a>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Empleado</th><th>Usuario</th><th>Rol</th><th>Último acceso</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for u in empleados %}
+      <tr>
+        <td><strong>{{ u.get_full_name|default:"—" }}</strong></td>
+        <td class="folio">{{ u.username }}</td>
+        <td>
+          {% if u.is_superuser %}<span class="badge b-info">Superadmin</span>
+          {% elif u.is_staff %}<span class="badge b-warn">Administrador</span>
+          {% else %}<span class="badge b-grey">Empleado</span>{% endif %}
+        </td>
+        <td class="muted">{% if u.last_login %}{{ u.last_login|date:"d/m/Y H:i" }}{% else %}Nunca{% endif %}</td>
+        <td>{% if u.is_active %}<span class="badge b-ok">Activo</span>{% else %}<span class="badge b-bad">Inactivo</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

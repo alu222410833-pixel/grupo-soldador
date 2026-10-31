@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Clientes — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Clientes</div>
+    <h1>Clientes</h1>
+  </div>
+  <a class="btn btn-primary" href="{% url 'cliente_nuevo' %}"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>REGISTRAR CLIENTE</a>
+</div>
+
+<div class="card" style="margin-bottom:18px">
+  <form class="search-form" method="get">
+    <input type="text" name="q" placeholder="Buscar por nombre..." value="{{ buscar }}">
+    <button class="btn btn-outline" type="submit" style="height:40px">BUSCAR</button>
+    {% if buscar %}<a class="btn btn-outline" href="{% url 'clientes' %}" style="height:40px">LIMPIAR</a>{% endif %}
+  </form>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr><th>Cliente</th><th>Teléfono</th><th>Email</th><th class="num">Cotizaciones</th><th>Registrado</th></tr>
+    </thead>
+    <tbody>
+      {% for c in clientes %}
+      <tr>
+        <td><strong>{{ c.nombre }}</strong></td>
+        <td class="muted">{{ c.telefono|default:"—" }}</td>
+        <td class="muted">{{ c.email|default:"—" }}</td>
+        <td class="num">{{ c.num_cotizaciones }}</td>
+        <td class="muted">{{ c.creado_en|date:"d/m/Y" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Aún no hay clientes. Registra el primero con el botón de arriba.{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

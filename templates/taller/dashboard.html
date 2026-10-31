@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Dashboard</div>
+    <h1>Dashboard</h1>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi">
+    <div>
+      <div class="label">Cotizaciones del día</div>
+      <div class="value">{{ cotizaciones_dia }} <span class="delta up">${{ total_dia|floatformat:0 }} MXN</span></div>
+      <div class="sub">Generadas hoy</div>
+    </div>
+    <div class="kpi-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 9.4V19a2 2 0 01-2 2z"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div>
+      <div class="label">Pendientes de aprobación</div>
+      <div class="value"><span class="pulse">{{ pendientes }}</span> <span class="delta warn">requieren revisión</span></div>
+      <div class="sub">Aprobación del administrador</div>
+    </div>
+    <div class="kpi-icon amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div>
+      <div class="label">Productos con stock bajo</div>
+      <div class="value">{{ stock_bajo }} <span class="delta down">crítico</span></div>
+      <div class="sub">Revisar inventario</div>
+    </div>
+    <div class="kpi-icon red"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.1 19h13.8c1.5 0 2.5-1.7 1.7-3L13.7 4.7c-.8-1.3-2.7-1.3-3.4 0L3.4 16c-.8 1.3.2 3 1.7 3z"/></svg></div>
+  </div>
+</div>
+
+<div class="cta-row">
+  <a class="btn btn-primary" href="/admin/taller/cotizacion/add/"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>NUEVA COTIZACIÓN</a>
+  <a class="btn btn-outline" href="{% url 'cliente_nuevo' %}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>REGISTRAR CLIENTE</a>
+</div>
+
+<div class="card">
+  <div class="card-head">
+    <div>
+      <h2>Actividad reciente</h2>
+      <div class="ok">● Últimas 5 cotizaciones</div>
+    </div>
+    <a href="{% url 'cotizaciones' %}">Ver todas →</a>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Folio</th><th>Cliente</th><th>Vehículo / Servicio</th><th class="num">Monto</th><th>Estado</th><th>Fecha</th></tr>
+    </thead>
+    <tbody>
+      {% for c in recientes %}
+      <tr>
+        <td class="folio">{{ c.folio }}</td>
+        <td>{{ c.cliente.nombre }}</td>
+        <td class="muted">{{ c.vehiculo }}</td>
+        <td class="num">${{ c.total|floatformat:0 }}</td>
+        <td>
+          {% if c.estado == 'APROBADA' %}<span class="badge b-ok">Aprobada</span>
+          {% elif c.estado == 'PENDIENTE' %}<span class="badge b-warn">Pendiente</span>
+          {% elif c.estado == 'RECHAZADA' %}<span class="badge b-bad">Rechazada</span>
+          {% elif c.estado == 'EN_PROCESO' %}<span class="badge b-info">En proceso</span>
+          {% else %}<span class="badge b-grey">Borrador</span>{% endif %}
+        </td>
+        <td class="muted">{{ c.creado_en|date:"d/m/Y H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="empty">Aún no hay cotizaciones. Crea la primera desde "Nueva Cotización".</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
