@@ -69,27 +69,27 @@
 
 {{ clientes_map|json_script:"cli-map" }}
 
-<div id="cli-pop" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(3,6,20,.7);align-items:center;justify-content:center;padding:16px">
-  <div style="background:#0A1235;border:1px solid var(--border);border-radius:14px;width:100%;max-width:440px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.6)">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)">
-      <b style="font-size:14px">Elegir cliente</b>
-      <button type="button" id="cli-x" style="background:none;border:none;color:var(--text-sec);font-size:18px;cursor:pointer">×</button>
+<div id="cli-pop" class="cli-pop">
+  <div class="cli-card">
+    <div class="cli-head">
+      <b>Elegir cliente</b>
+      <button type="button" id="cli-x" class="cli-x">×</button>
     </div>
-    <div style="padding:12px 16px">
-      <input type="text" id="cli-search" placeholder="Buscar por nombre o teléfono…" style="width:100%">
+    <div class="cli-body">
+      <input type="text" id="cli-search" class="cli-in" placeholder="Buscar por nombre o teléfono…">
       <button type="button" id="cli-new-toggle" class="btn btn-outline" style="width:100%;margin-top:10px;justify-content:center;font-size:12px">+ REGISTRAR CLIENTE NUEVO (una vez)</button>
-      <div id="cli-new" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:10px;padding:10px">
-        <input type="text" id="nc-nombre" placeholder="Nombre(s) *" style="width:100%;margin-bottom:8px">
+      <div id="cli-new" class="cli-new-form" style="display:none">
+        <input type="text" id="nc-nombre" class="cli-in" placeholder="Nombre(s) *" style="margin-bottom:8px">
         <div style="display:flex;gap:8px;margin-bottom:8px">
-          <input type="text" id="nc-pat" placeholder="A. paterno" style="flex:1">
-          <input type="text" id="nc-mat" placeholder="A. materno" style="flex:1">
+          <input type="text" id="nc-pat" class="cli-in" placeholder="A. paterno">
+          <input type="text" id="nc-mat" class="cli-in" placeholder="A. materno">
         </div>
-        <input type="tel" id="nc-tel" placeholder="Teléfono (+52)" style="width:100%;margin-bottom:8px">
+        <input type="tel" id="nc-tel" class="cli-in" placeholder="Teléfono (+52)" style="margin-bottom:8px">
         <button type="button" id="nc-ok" class="btn btn-primary" style="width:100%;justify-content:center;font-size:12px">GUARDAR Y USAR</button>
         <p id="nc-err" class="muted" style="margin:6px 0 0;font-size:11px;color:var(--red)"></p>
       </div>
     </div>
-    <div id="cli-list" style="overflow-y:auto;padding:0 8px 10px"></div>
+    <div id="cli-list" class="cli-list"></div>
   </div>
 </div>
 
@@ -192,10 +192,11 @@
     hits.forEach(c => {
       const row = document.createElement('button');
       row.type = 'button';
-      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;width:100%;text-align:left;padding:10px;border:none;border-bottom:1px solid rgba(255,255,255,.05);background:transparent;color:var(--text);font-size:13.5px;cursor:pointer;border-radius:8px';
-      row.onmouseenter = () => row.style.background = '#141E42';
-      row.onmouseleave = () => row.style.background = 'transparent';
-      row.innerHTML = '<span><b>' + c.nombre + '</b>' + (c.tel ? ' <span class="muted" style="font-size:11.5px">' + c.tel + '</span>' : '') + '</span>' + (c.vehs && c.vehs.length ? '<span class="badge b-info" style="font-size:10px">' + c.vehs.length + ' auto' + (c.vehs.length > 1 ? 's' : '') + '</span>' : '');
+      row.className = 'cli-row';
+      const ini = (c.nombre || '?').trim()[0].toUpperCase();
+      row.innerHTML = '<span class="cli-av">' + ini + '</span>'
+        + '<span style="flex:1;min-width:0"><b>' + c.nombre + '</b><br><span class="muted" style="font-size:11.5px">' + (c.tel || 'Sin teléfono') + '</span></span>'
+        + (c.vehs && c.vehs.length ? '<span class="badge b-info" style="font-size:10px">' + c.vehs.length + ' auto' + (c.vehs.length > 1 ? 's' : '') + '</span>' : '');
       row.addEventListener('click', () => elegir(c));
       lista.appendChild(row);
     });
