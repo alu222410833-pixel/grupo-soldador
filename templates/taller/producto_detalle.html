@@ -48,7 +48,7 @@
     <table class="kv">
       <tr><td class="muted">Código</td><td class="folio">{{ p.codigo }}</td></tr>
       <tr><td class="muted">Tipo</td><td>{{ p.get_tipo_display }}</td></tr>
-      <tr><td class="muted">Categoría</td><td>{% if p.categoria %}<span class="badge b-info">{{ p.categoria }}</span>{% else %}<span class="muted">—</span>{% endif %}</td></tr>
+      {% if p.tipo != 'MANO_OBRA' %}<tr><td class="muted">Categoría</td><td>{% if p.categoria %}<span class="badge b-info">{{ p.categoria }}</span>{% else %}<span class="muted">—</span>{% endif %}</td></tr>{% endif %}
       <tr><td class="muted">Estado</td><td>{% if p.stock_bajo %}<span class="badge b-bad">Stock bajo</span>{% elif p.activo %}<span class="badge b-ok">Disponible</span>{% else %}<span class="badge b-grey">Inactivo</span>{% endif %}</td></tr>
       {% if p.tipo == 'MANO_OBRA' %}<tr><td class="muted">Cobro</td><td class="muted">Por hora o por trabajo — sin stock</td></tr>{% endif %}
       {% if p.descripcion %}<tr><td class="muted">Descripción</td><td>{{ p.descripcion|linebreaksbr }}</td></tr>{% endif %}
