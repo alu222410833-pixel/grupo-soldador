@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Acceso — Grupo Soldador M.A.M</title>
+<link rel="icon" type="image/jpeg" href="{% static 'taller/img/logo.jpg' %}">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -24,11 +25,9 @@
     border-radius: 15px;
   }
   .mark {
-    width: 44px; height: 44px; border-radius: 12px;
-    background: linear-gradient(135deg, #F97316, #FF9A3C);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 19px; color: #060D26;
-    box-shadow: 0 0 22px rgba(249,115,22,.45);
+    width: 52px; height: 52px; border-radius: 14px;
+    object-fit: cover;
+    box-shadow: 0 0 22px rgba(0,117,255,.45);
     margin-bottom: 18px;
   }
   h1 { font-size: 19px; margin-bottom: 4px; }
@@ -54,7 +53,7 @@
 </head>
 <body>
 <div class="box">
-  <div class="mark">M</div>
+  <img class="mark" src="{% static 'taller/img/logo.jpg' %}" alt="Grupo Soldador">
   <h1>Grupo Soldador M.A.M</h1>
   <div class="sub">Acceso exclusivo para empleados</div>
   {% if form.errors %}<div class="error">Usuario o contraseña incorrectos.</div>{% endif %}

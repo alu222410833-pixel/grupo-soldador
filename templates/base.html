@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}Grupo Soldador M.A.M{% endblock %}</title>
+<link rel="icon" type="image/jpeg" href="{% static 'taller/img/logo.jpg' %}">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -36,10 +37,8 @@
   .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 18px; border-bottom: 1px solid var(--border); }
   .brand-mark {
     width: 34px; height: 34px; border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent), #FF9A3C);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 15px; color: #060D26;
-    box-shadow: 0 0 18px rgba(249,115,22,.45);
+    object-fit: cover;
+    box-shadow: 0 0 18px rgba(0,117,255,.45);
   }
   .brand-name { font-weight: 700; font-size: 13.5px; letter-spacing: .02em; }
   .brand-name small { display: block; font-weight: 500; font-size: 10.5px; color: var(--text-sec); letter-spacing: .12em; }
@@ -378,12 +377,12 @@
 <body>
 <header class="mobile-bar">
   <button class="hamb" type="button" aria-label="Abrir menú"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-  <span class="mb-brand"><span class="brand-mark">M</span>GRUPO SOLDADOR</span>
+  <span class="mb-brand"><img class="brand-mark" src="{% static 'taller/img/logo.jpg' %}" alt="Grupo Soldador">GRUPO SOLDADOR</span>
 </header>
 <div class="scrim"></div>
 <aside class="sidebar">
   <div class="brand">
-    <div class="brand-mark">M</div>
+    <img class="brand-mark" src="{% static 'taller/img/logo.jpg' %}" alt="Grupo Soldador">
     <div class="brand-name">GRUPO SOLDADOR<small>M.A.M</small></div>
   </div>
   <div class="user">
