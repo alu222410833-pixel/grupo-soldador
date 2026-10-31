@@ -7,7 +7,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
 from django.contrib.auth.models import User
-from taller.models import Categoria, Cliente, Producto, Cotizacion, DetalleCotizacion
+from taller.models import Categoria, Cliente, Producto, Cotizacion, DetalleCotizacion, VehiculoCliente
 
 admin, _ = User.objects.get_or_create(
     username="admin",
@@ -28,6 +28,11 @@ if created:
 c1, _ = Cliente.objects.get_or_create(nombre="Juan Pérez García", defaults={"telefono": "+52 81 8300 1111"})
 c2, _ = Cliente.objects.get_or_create(nombre="María López Ruiz", defaults={"telefono": "+52 81 8300 2222"})
 c3, _ = Cliente.objects.get_or_create(nombre="Carlos Méndez")
+
+# Vehículos de ejemplo
+VehiculoCliente.objects.get_or_create(cliente=c1, descripcion="Nissan Tsuru 2015 rojo · placas ABC-123")
+VehiculoCliente.objects.get_or_create(cliente=c1, descripcion="Chevrolet Cheyenne 2020 gris")
+VehiculoCliente.objects.get_or_create(cliente=c2, descripcion="VW Jetta 2018 blanco")
 
 # Categorías padre/hijo de ejemplo
 cat_consum, _ = Categoria.objects.get_or_create(nombre="Consumibles")
