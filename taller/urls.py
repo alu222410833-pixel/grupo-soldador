@@ -26,6 +26,7 @@ urlpatterns = [
     path("usuarios/<int:pk>/activo/", views.usuario_toggle, name="usuario_toggle"),
     path("usuarios/<int:pk>/eliminar/", views.usuario_eliminar, name="usuario_eliminar"),
     path("administracion/", views.administracion, name="administracion"),
+    path("administracion/respaldo/", views.respaldo_bd, name="respaldo_bd"),
     path("administracion/categorias/", views.categorias, name="categorias"),
     path("categorias/nueva/", views.categoria_nueva, name="categoria_nueva"),
 ]
