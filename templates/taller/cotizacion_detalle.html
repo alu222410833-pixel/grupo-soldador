@@ -103,7 +103,6 @@
         <td>
           {% if d.producto %}<span class="muted" style="font-size:11.5px">{{ d.producto.codigo }}</span> {% endif %}
           {{ d.concepto }}
-          {% if not d.producto %}<span class="badge b-grey" style="font-size:9.5px;margin-left:6px">Libre</span>{% endif %}
         </td>
         <td class="num">{{ d.cantidad }}</td>
         <td class="num">${{ d.precio_unitario|floatformat:2 }}</td>
