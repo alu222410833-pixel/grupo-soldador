@@ -36,17 +36,11 @@
         <label>Nombre <span class="req">*</span></label>
         <input type="text" name="nombre" required placeholder="Ej. Electrodo 7018 1/8 pulgada">
       </div>
-      <div class="field">
+      <div class="field" style="position:relative">
         <label>Categoría</label>
-        <select name="categoria" id="f-cat">
-          <option value="">— Sin categoría —</option>
-          {% for c in categorias %}
-          <option value="{{ c.pk }}">{{ c.nombre }}</option>
-          {% for h in c.subcategorias.all %}
-          <option value="{{ h.pk }}">&nbsp;&nbsp;{{ c.nombre }} › {{ h.nombre }}</option>
-          {% endfor %}
-          {% endfor %}
-        </select>
+        <input type="text" id="f-cat-search" placeholder="Buscar categoría…" autocomplete="off" style="width:100%">
+        <input type="hidden" name="categoria" id="f-cat">
+        <div id="cat-list" style="display:none;position:absolute;z-index:40;left:0;right:0;max-height:200px;overflow-y:auto;background:#0A1235;border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
         <button type="button" id="btn-newcat" style="margin-top:6px;background:none;border:none;color:var(--blue);font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;padding:0">+ NUEVA CATEGORÍA</button>
         <div id="newcat" style="display:none;margin-top:8px;gap:6px;align-items:center">
           <input type="text" id="nc-nombre" placeholder="Nombre" style="flex:1;min-width:0">
@@ -84,6 +78,7 @@
   </form>
 </div>
 {{ codigos_siguientes|json_script:"codigos-map" }}
+{{ categorias_flat|json_script:"cats-map" }}
 <script>
 (function () {
   const siguientes = JSON.parse(document.getElementById('codigos-map').textContent);
@@ -100,9 +95,32 @@
   selTipo.addEventListener('change', autoCodigo);
   autoCodigo();
 
+  const cats = JSON.parse(document.getElementById('cats-map').textContent);
+  const inpCat = document.getElementById('f-cat-search');
+  const hidCat = document.getElementById('f-cat');
+  const listaCat = document.getElementById('cat-list');
+  function pintarLista(q) {
+    const t = q.trim().toLowerCase();
+    const hits = cats.filter(c => !t || c.label.toLowerCase().includes(t)).slice(0, 50);
+    listaCat.innerHTML = '';
+    if (!hits.length) { listaCat.style.display = 'none'; return; }
+    hits.forEach(c => {
+      const div = document.createElement('div');
+      div.textContent = c.label;
+      div.style.cssText = 'padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text)';
+      div.onmouseenter = () => div.style.background = '#141E42';
+      div.onmouseleave = () => div.style.background = 'transparent';
+      div.onmousedown = (e) => { e.preventDefault(); inpCat.value = c.label; hidCat.value = c.id; listaCat.style.display = 'none'; };
+      listaCat.appendChild(div);
+    });
+    listaCat.style.display = 'block';
+  }
+  inpCat.addEventListener('focus', () => pintarLista(inpCat.value));
+  inpCat.addEventListener('input', () => { hidCat.value = ''; pintarLista(inpCat.value); });
+  inpCat.addEventListener('blur', () => setTimeout(() => listaCat.style.display = 'none', 150));
+
   const btnNewCat = document.getElementById('btn-newcat');
   const zoneCat = document.getElementById('newcat');
-  const selCat = document.getElementById('f-cat');
   const selParent = document.getElementById('nc-parent');
   const inpNomCat = document.getElementById('nc-nombre');
   const msgCat = document.getElementById('nc-msg');
@@ -124,16 +142,17 @@
     });
     const data = await resp.json();
     if (resp.ok) {
-      const opt = new Option(selParent.value ? '\u00a0\u00a0' + data.label : data.label, data.id, true, true);
-      selCat.add(opt);
-      if (!selParent.value) {
+      if (!cats.some(c => c.id === data.id)) cats.push({ id: data.id, label: data.label });
+      inpCat.value = data.label;
+      hidCat.value = data.id;
+      if (!selParent.value && !data.existe) {
         selParent.add(new Option(data.label, data.id));
       }
       zoneCat.style.display = 'none';
       inpNomCat.value = '';
-      msgCat.textContent = 'Catégorie créée et sélectionnée.';
+      msgCat.textContent = data.existe ? 'Ya existía — seleccionada.' : 'Categoría creada y seleccionada.';
     } else {
-      msgCat.textContent = data.error || 'Erreur à la création.';
+      msgCat.textContent = data.error || 'Error al crear.';
     }
   });
 })();

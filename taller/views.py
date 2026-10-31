@@ -202,6 +202,7 @@ def producto_nuevo(request):
         "tipo_inicial": tipo_inicial if tipo_inicial in dict(tipos_fisicos) else "",
         "codigos_siguientes": _codigos_siguientes(),
         "categorias": Categoria.objects.prefetch_related("subcategorias").filter(parent__isnull=True),
+        "categorias_flat": [{"id": c.pk, "label": str(c)} for c in Categoria.objects.select_related("parent")],
     })
 
 
@@ -263,10 +264,11 @@ def categoria_nueva(request):
     nombre = request.POST.get("nombre", "").strip()
     if not nombre:
         return JsonResponse({"error": "El nombre es obligatorio."}, status=400)
-    cat = Categoria.objects.create(
-        nombre=nombre,
-        parent=Categoria.objects.filter(pk=request.POST.get("parent") or 0).first(),
-    )
+    parent = Categoria.objects.filter(pk=request.POST.get("parent") or 0).first()
+    existe = Categoria.objects.filter(nombre__iexact=nombre, parent=parent).first()
+    if existe:
+        return JsonResponse({"id": existe.pk, "label": str(existe), "existe": True})
+    cat = Categoria.objects.create(nombre=nombre, parent=parent)
     return JsonResponse({"id": cat.pk, "label": str(cat)})
 
 
