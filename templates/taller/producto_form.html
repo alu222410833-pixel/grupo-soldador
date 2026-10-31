@@ -4,7 +4,7 @@
 <div class="topbar">
   <div>
     <div class="crumb">Páginas / Inventario / Nuevo</div>
-    <h1>{% if tipo_inicial == 'MANO_OBRA' %}Nuevo Servicio{% else %}Nuevo Producto{% endif %}</h1>
+    <h1>Nuevo Producto</h1>
   </div>
 </div>
 
@@ -12,7 +12,7 @@
   <div class="form-head">
     <div class="fic blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v10M4 7v10l8 4"/></svg></div>
     <div>
-      <h2>{% if tipo_inicial == 'MANO_OBRA' %}Servicio de mano de obra{% else %}Producto o servicio{% endif %}</h2>
+      <h2>Producto</h2>
       <p>Se mostrará en el inventario y al cotizar.</p>
     </div>
   </div>
@@ -21,11 +21,12 @@
     <div class="form-grid">
       <div class="field">
         <label>Código / SKU <span class="req">*</span></label>
-        <input type="text" name="codigo" required placeholder="Ej. ELEC-7018">
+        <input type="text" name="codigo" id="f-codigo" required placeholder="Ej. ELEC-7018" autocomplete="off">
+        <p class="muted" style="margin:4px 0 0;font-size:11px" id="codigo-hint">Proposé selon le type — modifiable.</p>
       </div>
       <div class="field">
         <label>Tipo <span class="req">*</span></label>
-        <select name="tipo">
+        <select name="tipo" id="f-tipo">
           {% for valor, etiqueta in tipos %}
           <option value="{{ valor }}" {% if tipo_inicial == valor %}selected{% endif %}>{{ etiqueta }}</option>
           {% endfor %}
@@ -70,4 +71,22 @@
     </div>
   </form>
 </div>
+{{ codigos_siguientes|json_script:"codigos-map" }}
+<script>
+(function () {
+  const siguientes = JSON.parse(document.getElementById('codigos-map').textContent);
+  const selTipo = document.getElementById('f-tipo');
+  const inpCod = document.getElementById('f-codigo');
+  let ultimoAuto = '';
+  function autoCodigo() {
+    const sug = siguientes[selTipo.value] || '';
+    if (sug && (inpCod.value === '' || inpCod.value === ultimoAuto)) {
+      inpCod.value = sug;
+    }
+    ultimoAuto = sug;
+  }
+  selTipo.addEventListener('change', autoCodigo);
+  autoCodigo();
+})();
+</script>
 {% endblock %}

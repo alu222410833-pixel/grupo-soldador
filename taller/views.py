@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -168,16 +169,18 @@ def producto_nuevo(request):
         except InvalidOperation:
             precio = None
 
+        tipo = request.POST.get("tipo") or Producto.Tipo.PIEZA
         if not codigo or not nombre:
             messages.error(request, "Código y nombre son obligatorios.")
         elif precio is None or precio < 0:
             messages.error(request, "Ingresa un precio válido.")
+        elif tipo == Producto.Tipo.MANO_OBRA:
+            messages.error(request, "La mano de obra se registra desde la sección Servicios.")
         elif Producto.objects.filter(codigo=codigo).exists():
             messages.error(request, f"El código {codigo} ya existe en el inventario.")
         else:
             stock = request.POST.get("stock", "0")
             stock_min = request.POST.get("stock_minimo", "3")
-            tipo = request.POST.get("tipo") or Producto.Tipo.PIEZA
             Producto.objects.create(
                 codigo=codigo,
                 nombre=nombre,
@@ -189,14 +192,36 @@ def producto_nuevo(request):
                 imagen=request.FILES.get("imagen"),
             )
             messages.success(request, f"Producto {codigo} registrado.")
-            return redirect("servicios" if tipo == Producto.Tipo.MANO_OBRA else "inventario")
+            return redirect("inventario")
 
+    tipos_fisicos = [t for t in Producto.Tipo.choices if t[0] != Producto.Tipo.MANO_OBRA]
     tipo_inicial = request.GET.get("tipo", "")
     return render(request, "taller/producto_form.html", {
-        "tipos": Producto.Tipo.choices,
-        "tipo_inicial": tipo_inicial if tipo_inicial in Producto.Tipo.values else "",
+        "tipos": tipos_fisicos,
+        "tipo_inicial": tipo_inicial if tipo_inicial in dict(tipos_fisicos) else "",
+        "codigos_siguientes": _codigos_siguientes(),
         "categorias": Categoria.objects.prefetch_related("subcategorias").filter(parent__isnull=True),
     })
+
+
+_PREFIJOS_TIPO = {
+    Producto.Tipo.PIEZA: "PIE",
+    Producto.Tipo.REFACCION: "REF",
+    Producto.Tipo.HERRAMIENTA: "HER",
+}
+
+
+def _codigos_siguientes():
+    """Prochain code libre par type : PIE-N, REF-N, HER-N (max suffixe numérique + 1)."""
+    res = {}
+    for tipo, prefijo in _PREFIJOS_TIPO.items():
+        maximo = 0
+        for codigo in Producto.objects.filter(codigo__startswith=prefijo + "-").values_list("codigo", flat=True):
+            m = re.match(rf"^{prefijo}-(\d+)$", codigo)
+            if m:
+                maximo = max(maximo, int(m.group(1)))
+        res[tipo] = f"{prefijo}-{maximo + 1}"
+    return res
 
 
 @login_required
