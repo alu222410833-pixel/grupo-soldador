@@ -38,7 +38,7 @@
       </div>
       <div class="field">
         <label>Categoría</label>
-        <select name="categoria">
+        <select name="categoria" id="f-cat">
           <option value="">— Sin categoría —</option>
           {% for c in categorias %}
           <option value="{{ c.pk }}">{{ c.nombre }}</option>
@@ -47,6 +47,18 @@
           {% endfor %}
           {% endfor %}
         </select>
+        <button type="button" id="btn-newcat" style="margin-top:6px;background:none;border:none;color:var(--blue);font-size:11px;font-weight:600;letter-spacing:.4px;cursor:pointer;padding:0">+ NUEVA CATEGORÍA</button>
+        <div id="newcat" style="display:none;margin-top:8px;gap:6px;align-items:center">
+          <input type="text" id="nc-nombre" placeholder="Nombre" style="flex:1;min-width:0">
+          <select id="nc-parent" style="flex:0 0 auto;max-width:140px">
+            <option value="">Raíz</option>
+            {% for c in categorias %}
+            <option value="{{ c.pk }}">{{ c.nombre }}</option>
+            {% endfor %}
+          </select>
+          <button type="button" id="nc-ok" class="btn btn-primary" style="padding:6px 10px;font-size:11px">CREAR</button>
+        </div>
+        <p class="muted" id="nc-msg" style="margin:4px 0 0;font-size:11px"></p>
       </div>
       <div class="field">
         <label>Foto del producto</label>
@@ -87,6 +99,43 @@
   }
   selTipo.addEventListener('change', autoCodigo);
   autoCodigo();
+
+  const btnNewCat = document.getElementById('btn-newcat');
+  const zoneCat = document.getElementById('newcat');
+  const selCat = document.getElementById('f-cat');
+  const selParent = document.getElementById('nc-parent');
+  const inpNomCat = document.getElementById('nc-nombre');
+  const msgCat = document.getElementById('nc-msg');
+  btnNewCat.addEventListener('click', () => {
+    zoneCat.style.display = zoneCat.style.display === 'none' ? 'flex' : 'none';
+    inpNomCat.focus();
+  });
+  document.getElementById('nc-ok').addEventListener('click', async () => {
+    const nombre = inpNomCat.value.trim();
+    if (!nombre) { msgCat.textContent = 'Nom requis.'; return; }
+    const body = new URLSearchParams({ nombre, parent: selParent.value });
+    const resp = await fetch("{% url 'categoria_nueva' %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body,
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      const opt = new Option(selParent.value ? '\u00a0\u00a0' + data.label : data.label, data.id, true, true);
+      selCat.add(opt);
+      if (!selParent.value) {
+        selParent.add(new Option(data.label, data.id));
+      }
+      zoneCat.style.display = 'none';
+      inpNomCat.value = '';
+      msgCat.textContent = 'Catégorie créée et sélectionnée.';
+    } else {
+      msgCat.textContent = data.error || 'Erreur à la création.';
+    }
+  });
 })();
 </script>
 {% endblock %}

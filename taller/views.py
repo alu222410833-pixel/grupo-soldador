@@ -6,6 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count
+from django.http import JsonResponse
 from django.utils import timezone
 from .models import Categoria, Cliente, Cotizacion, DetalleCotizacion, Producto
 
@@ -253,6 +254,20 @@ def categorias(request):
         "categorias": Categoria.objects.prefetch_related("subcategorias", "productos")
                                        .filter(parent__isnull=True),
     })
+
+
+@login_required
+def categoria_nueva(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée."}, status=405)
+    nombre = request.POST.get("nombre", "").strip()
+    if not nombre:
+        return JsonResponse({"error": "El nombre es obligatorio."}, status=400)
+    cat = Categoria.objects.create(
+        nombre=nombre,
+        parent=Categoria.objects.filter(pk=request.POST.get("parent") or 0).first(),
+    )
+    return JsonResponse({"id": cat.pk, "label": str(cat)})
 
 
 @login_required
