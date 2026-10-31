@@ -93,15 +93,26 @@
   </div>
 </div>
 
+<div id="prod-pop" class="cli-pop">
+  <div class="cli-card" style="max-width:520px">
+    <div class="cli-head">
+      <b>Elegir producto o servicio</b>
+      <button type="button" id="prod-x" class="cli-x">×</button>
+    </div>
+    <div class="cli-body">
+      <input type="text" id="prod-search" class="cli-in" placeholder="Buscar por código o nombre…">
+      <div id="prod-tips" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"></div>
+    </div>
+    <div id="prod-list" class="cli-list"></div>
+  </div>
+</div>
+
+{{ productos_map|json_script:"prod-map" }}
 <template id="row-tpl">
   <tr>
     <td>
-      <select name="producto" class="prod-sel">
-        <option value="">— Selecciona —</option>
-        {% for p in productos %}
-        <option value="{{ p.pk }}" data-precio="{{ p.precio_unitario }}">{{ p.codigo }} — {{ p.nombre }}</option>
-        {% endfor %}
-      </select>
+      <input type="hidden" name="producto" class="prod-hid">
+      <button type="button" class="prod-btn cli-btn">— Selecciona producto o servicio —</button>
     </td>
     <td><input type="number" name="cantidad" class="cant" min="1" value="1"></td>
     <td class="num punit muted">$0.00</td>
@@ -117,11 +128,72 @@
   const totalEl = document.getElementById('total');
   const fmt = n => '$' + n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  const productos = JSON.parse(document.getElementById('prod-map').textContent);
+  const prodById = Object.fromEntries(productos.map(p => [String(p.id), p]));
+  const pPop = document.getElementById('prod-pop');
+  const pLista = document.getElementById('prod-list');
+  const pSearch = document.getElementById('prod-search');
+  const pTips = document.getElementById('prod-tips');
+  let pRow = null;         // fila que abrió el popup
+  let pTipo = 'TODOS';     // filtro de tipo activo
+
+  const TIPOS = [
+    ['TODOS', 'Todos'], ['PIEZA', 'Piezas'], ['REFACCION', 'Refacciones'],
+    ['HERRAMIENTA', 'Herramientas'], ['MANO_OBRA', 'Servicios'],
+  ];
+
+  function pintarTips() {
+    pTips.innerHTML = '';
+    TIPOS.forEach(([val, lab]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = lab;
+      b.style.cssText = 'padding:6px 12px;border-radius:999px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid ' + (pTipo === val ? 'var(--accent)' : 'var(--border)') + ';background:' + (pTipo === val ? 'rgba(249,115,22,.15)' : 'rgba(255,255,255,.04)') + ';color:' + (pTipo === val ? 'var(--accent)' : 'var(--text-sec)');
+      b.addEventListener('click', () => { pTipo = val; pintarTips(); pintarProds(pSearch.value); });
+      pTips.appendChild(b);
+    });
+  }
+
+  function pintarProds(q) {
+    const t = (q || '').trim().toLowerCase();
+    const hits = productos.filter(p =>
+      (pTipo === 'TODOS' || p.tipo === pTipo) &&
+      (!t || p.nombre.toLowerCase().includes(t) || p.codigo.toLowerCase().includes(t)));
+    pLista.innerHTML = '';
+    if (!hits.length) {
+      pLista.innerHTML = '<p class="muted" style="padding:14px 10px;font-size:12.5px">Sin resultados en este filtro.</p>';
+      return;
+    }
+    hits.forEach(p => {
+      const row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'cli-row';
+      const esServ = p.tipo === 'MANO_OBRA';
+      row.innerHTML = '<span class="cli-av" style="' + (esServ ? 'background:rgba(249,115,22,.14);color:var(--accent)' : '') + '">' + p.codigo[0] + '</span>'
+        + '<span style="flex:1;min-width:0"><b>' + p.codigo + ' · ' + p.nombre + '</b><br><span class="muted" style="font-size:11.5px">' + p.tipo_label + '</span></span>'
+        + '<span style="font-weight:700;color:var(--accent);font-size:13px">' + fmt(p.precio) + '</span>';
+      row.addEventListener('click', () => elegirProd(p));
+      pLista.appendChild(row);
+    });
+  }
+
+  function elegirProd(p) {
+    if (pRow) {
+      pRow.querySelector('.prod-hid').value = p.id;
+      const btn = pRow.querySelector('.prod-btn');
+      btn.textContent = p.codigo + ' — ' + p.nombre;
+      btn.style.borderColor = 'var(--blue)';
+    }
+    pPop.style.display = 'none';
+    recalc();
+  }
+
   function recalc() {
     let total = 0;
     tbody.querySelectorAll('tr').forEach(tr => {
-      const sel = tr.querySelector('.prod-sel');
-      const precio = parseFloat(sel.selectedOptions[0] && sel.selectedOptions[0].dataset.precio || 0);
+      const hid = tr.querySelector('.prod-hid');
+      const p = prodById[hid && hid.value];
+      const precio = p ? p.precio : 0;
       const cant = parseFloat(tr.querySelector('.cant').value) || 0;
       const sub = precio * cant;
       tr.querySelector('.punit').textContent = fmt(precio);
@@ -136,10 +208,19 @@
     recalc();
   });
   tbody.addEventListener('input', recalc);
-  tbody.addEventListener('change', recalc);
   tbody.addEventListener('click', e => {
-    if (e.target.closest('.rm')) { e.target.closest('tr').remove(); recalc(); }
+    if (e.target.closest('.rm')) { e.target.closest('tr').remove(); recalc(); return; }
+    const btn = e.target.closest('.prod-btn');
+    if (btn) {
+      pRow = btn.closest('tr');
+      pPop.style.display = 'flex';
+      pSearch.value = ''; pTipo = 'TODOS';
+      pintarTips(); pintarProds(''); pSearch.focus();
+    }
   });
+  document.getElementById('prod-x').addEventListener('click', () => pPop.style.display = 'none');
+  pPop.addEventListener('click', e => { if (e.target === pPop) pPop.style.display = 'none'; });
+  pSearch.addEventListener('input', () => pintarProds(pSearch.value));
 
   document.getElementById('add-row').click();
 

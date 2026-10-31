@@ -218,10 +218,16 @@ def cotizacion_nueva(request):
                   for v in c.vehiculos.all()]}
         for c in clientes_qs
     ]
+    productos_map = [
+        {"id": p.pk, "codigo": p.codigo, "nombre": p.nombre,
+         "tipo": p.tipo, "tipo_label": p.get_tipo_display(),
+         "precio": float(p.precio_unitario)}
+        for p in Producto.objects.filter(activo=True)
+    ]
     return render(request, "taller/cotizacion_form.html", {
-        "productos": Producto.objects.filter(activo=True),
         "estados": Cotizacion.Estado.choices,
         "clientes_map": clientes_map,
+        "productos_map": productos_map,
     })
 
 
