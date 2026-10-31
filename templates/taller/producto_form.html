@@ -50,7 +50,13 @@
       </div>
       <div class="field">
         <label>Foto del producto</label>
-        <input type="file" name="imagen" accept="image/*">
+        <div style="display:flex;gap:8px">
+          <input type="file" id="img-file" name="imagen" accept="image/*" hidden>
+          <label for="img-file" class="btn btn-outline" style="flex:1;justify-content:center;font-size:12px;padding:9px 8px">Elegir archivo</label>
+          <input type="file" id="img-cam" name="imagen_camara" accept="image/*" capture="environment" hidden>
+          <label for="img-cam" class="btn btn-outline" style="flex:1;justify-content:center;font-size:12px;padding:9px 8px">Tomar foto</label>
+        </div>
+        <p class="muted" id="img-name" style="margin:4px 0 0;font-size:11px">Elegir un archivo o tomar foto con la cámara.</p>
       </div>
       <div class="field">
         <label>Precio unitario (MXN) <span class="req">*</span></label>
@@ -112,6 +118,12 @@
   inpCat.addEventListener('focus', () => pintarLista(inpCat.value));
   inpCat.addEventListener('input', () => { hidCat.value = ''; pintarLista(inpCat.value); });
   inpCat.addEventListener('blur', () => setTimeout(() => listaCat.style.display = 'none', 150));
+
+  const imgFile = document.getElementById('img-file');
+  const imgCam = document.getElementById('img-cam');
+  const imgName = document.getElementById('img-name');
+  imgFile.addEventListener('change', () => { if (imgFile.files[0]) { imgCam.value = ''; imgName.textContent = imgFile.files[0].name; } });
+  imgCam.addEventListener('change', () => { if (imgCam.files[0]) { imgFile.value = ''; imgName.textContent = imgCam.files[0].name; } });
 
   const btnNewCat = document.getElementById('btn-newcat');
   const zoneCat = document.getElementById('newcat');

@@ -190,7 +190,7 @@ def producto_nuevo(request):
                 precio_unitario=precio,
                 stock=int(stock) if stock.isdigit() else 0,
                 stock_minimo=int(stock_min) if stock_min.isdigit() else 3,
-                imagen=request.FILES.get("imagen"),
+                imagen=request.FILES.get("imagen") or request.FILES.get("imagen_camara"),
             )
             messages.success(request, f"Producto {codigo} registrado.")
             return redirect("inventario")
