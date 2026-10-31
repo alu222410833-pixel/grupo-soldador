@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Administración — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Sistema / Administración</div>
+    <h1>Administración</h1>
+  </div>
+</div>
+
+<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+  <div class="kpi">
+    <div>
+      <div class="label">Productos</div>
+      <div class="value">{{ num_productos }}</div>
+      <div class="sub">En inventario</div>
+    </div>
+    <div class="kpi-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v10M4 7v10l8 4"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div>
+      <div class="label">Clientes</div>
+      <div class="value">{{ num_clientes }}</div>
+      <div class="sub">Registrados</div>
+    </div>
+    <div class="kpi-icon" style="background:var(--accent);box-shadow:0 0 20px rgba(249,115,22,.45)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.9M9 20H4v-2a4 4 0 013-3.9m6-1.1a4 4 0 10-4-4 4 4 0 004 4z"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div>
+      <div class="label">Cotizaciones</div>
+      <div class="value">{{ num_cotizaciones }}</div>
+      <div class="sub">Generadas</div>
+    </div>
+    <div class="kpi-icon" style="background:var(--green);box-shadow:0 0 20px rgba(1,181,116,.4)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 9.4V19a2 2 0 01-2 2z"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div>
+      <div class="label">Empleados</div>
+      <div class="value">{{ num_usuarios }}</div>
+      <div class="sub">Con acceso</div>
+    </div>
+    <div class="kpi-icon amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div>
+  </div>
+</div>
+
+<div class="link-cards">
+  <a class="link-card" href="{% url 'usuarios' %}">
+    <div class="fic blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div>
+    <div><h3>Empleados y accesos</h3><p>Crear cuentas y dar permisos de administrador</p></div>
+  </a>
+  <a class="link-card" href="{% url 'producto_nuevo' %}">
+    <div class="fic orange"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v10M4 7v10l8 4"/></svg></div>
+    <div><h3>Registrar producto</h3><p>Alta de piezas, refacciones y mano de obra</p></div>
+  </a>
+  <a class="link-card" href="{% url 'cliente_nuevo' %}">
+    <div class="fic green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg></div>
+    <div><h3>Registrar cliente</h3><p>Alta de clientes para cotizar</p></div>
+  </a>
+  <a class="link-card" href="/admin/taller/producto/">
+    <div class="fic blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.4-9.4a2 2 0 112.8 2.8L11 15l-4 1 1-4 8.4-8.4z"/></svg></div>
+    <div><h3>Editar inventario</h3><p>Precios, stock y bajas de productos</p></div>
+  </a>
+  <a class="link-card" href="/admin/taller/cotizacion/">
+    <div class="fic orange"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 9.4V19a2 2 0 01-2 2z"/></svg></div>
+    <div><h3>Editar cotizaciones</h3><p>Corregir partidas o estados manualmente</p></div>
+  </a>
+  <a class="link-card" href="/admin/">
+    <div class="fic green"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.9 2.9l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 11-4 0v-.2a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.9-2.9l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 110-4h.2a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.9-2.9l.1.1a1.7 1.7 0 001.9.3 1.7 1.7 0 001-1.5V3a2 2 0 114 0v.2a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.9 2.9l-.1.1a1.7 1.7 0 00-.3 1.9 1.7 1.7 0 001.5 1h.2a2 2 0 110 4h-.2a1.7 1.7 0 00-1.5 1z"/></svg></div>
+    <div><h3>Panel avanzado</h3><p>Todas las tablas de la base de datos</p></div>
+  </a>
+</div>
+{% endblock %}

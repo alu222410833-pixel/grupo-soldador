@@ -1,10 +1,12 @@
+from decimal import Decimal, InvalidOperation
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import redirect, render
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count
 from django.utils import timezone
-from .models import Cliente, Cotizacion, Producto
+from .models import Cliente, Cotizacion, DetalleCotizacion, Producto
 
 
 @login_required
@@ -111,6 +113,96 @@ def usuario_nuevo(request):
         else:
             messages.error(request, "Usuario y contraseña son obligatorios.")
     return render(request, "taller/usuario_form.html")
+
+
+@login_required
+def cotizacion_nueva(request):
+    if request.method == "POST":
+        cliente = Cliente.objects.filter(pk=request.POST.get("cliente")).first()
+        vehiculo = request.POST.get("vehiculo", "").strip()
+        estado = request.POST.get("estado", "")
+        if estado not in Cotizacion.Estado.values:
+            estado = Cotizacion.Estado.BORRADOR
+
+        detalles = []
+        for pid, cant in zip(request.POST.getlist("producto"), request.POST.getlist("cantidad")):
+            producto = Producto.objects.filter(pk=pid).first()
+            if producto and cant.isdigit() and int(cant) > 0:
+                detalles.append((producto, int(cant)))
+
+        if not cliente:
+            messages.error(request, "Selecciona un cliente.")
+        elif not vehiculo:
+            messages.error(request, "Describe el vehículo o trabajo a cotizar.")
+        elif not detalles:
+            messages.error(request, "Agrega al menos una partida con producto y cantidad válidos.")
+        else:
+            cot = Cotizacion.objects.create(
+                cliente=cliente,
+                vehiculo=vehiculo,
+                estado=estado,
+                notas=request.POST.get("notas", "").strip(),
+                creado_por=request.user,
+            )
+            for producto, cant in detalles:
+                DetalleCotizacion.objects.create(
+                    cotizacion=cot, producto=producto, cantidad=cant
+                )
+            messages.success(request, f"Cotización {cot.folio} creada — ${cot.total:,.2f} MXN.")
+            return redirect("cotizaciones")
+
+    return render(request, "taller/cotizacion_form.html", {
+        "clientes": Cliente.objects.all(),
+        "productos": Producto.objects.filter(activo=True),
+        "estados": Cotizacion.Estado.choices,
+    })
+
+
+@login_required
+def producto_nuevo(request):
+    if request.method == "POST":
+        codigo = request.POST.get("codigo", "").strip().upper()
+        nombre = request.POST.get("nombre", "").strip()
+        try:
+            precio = Decimal(request.POST.get("precio_unitario", ""))
+        except InvalidOperation:
+            precio = None
+
+        if not codigo or not nombre:
+            messages.error(request, "Código y nombre son obligatorios.")
+        elif precio is None or precio < 0:
+            messages.error(request, "Ingresa un precio válido.")
+        elif Producto.objects.filter(codigo=codigo).exists():
+            messages.error(request, f"El código {codigo} ya existe en el inventario.")
+        else:
+            stock = request.POST.get("stock", "0")
+            stock_min = request.POST.get("stock_minimo", "3")
+            Producto.objects.create(
+                codigo=codigo,
+                nombre=nombre,
+                tipo=request.POST.get("tipo") or Producto.Tipo.PIEZA,
+                precio_unitario=precio,
+                stock=int(stock) if stock.isdigit() else 0,
+                stock_minimo=int(stock_min) if stock_min.isdigit() else 3,
+            )
+            messages.success(request, f"Producto {codigo} registrado en el inventario.")
+            return redirect("inventario")
+
+    return render(request, "taller/producto_form.html", {
+        "tipos": Producto.Tipo.choices,
+    })
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def administracion(request):
+    User = get_user_model()
+    return render(request, "taller/administracion.html", {
+        "num_productos": Producto.objects.count(),
+        "num_clientes": Cliente.objects.count(),
+        "num_cotizaciones": Cotizacion.objects.count(),
+        "num_usuarios": User.objects.count(),
+    })
 
 
 @login_required

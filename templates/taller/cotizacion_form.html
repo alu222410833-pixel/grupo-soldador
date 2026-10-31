@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Nueva Cotización — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Cotizaciones / Nueva</div>
+    <h1>Nueva Cotización</h1>
+  </div>
+</div>
+
+<div class="card form-card wide">
+  <div class="form-head">
+    <div class="fic orange"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.6L19 9.4V19a2 2 0 01-2 2z"/></svg></div>
+    <div>
+      <h2>Datos de la cotización</h2>
+      <p>El folio se genera automáticamente al guardar.</p>
+    </div>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field">
+        <label>Cliente <span class="req">*</span></label>
+        <select name="cliente" required>
+          <option value="">— Selecciona —</option>
+          {% for c in clientes %}
+          <option value="{{ c.pk }}">{{ c.nombre }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Vehículo / Trabajo <span class="req">*</span></label>
+        <input type="text" name="vehiculo" required placeholder='Ej. "Nissan Sentra 2018" o "Portón herrería"'>
+      </div>
+      <div class="field">
+        <label>Estado</label>
+        <select name="estado">
+          {% for valor, etiqueta in estados %}
+          <option value="{{ valor }}">{{ etiqueta }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>Notas</label>
+        <input type="text" name="notas" placeholder="Opcional">
+      </div>
+    </div>
+
+    <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text-sec);text-transform:uppercase;margin:20px 0 8px">Partidas</label>
+    <table class="ptable">
+      <thead>
+        <tr><th style="width:46%">Producto / Servicio</th><th>Cantidad</th><th class="num">P. Unitario</th><th class="num">Subtotal</th><th></th></tr>
+      </thead>
+      <tbody id="partidas-body"></tbody>
+    </table>
+    <button type="button" class="add-row" id="add-row">+ Agregar partida</button>
+
+    <div class="total-bar">
+      <span class="t-label">Total</span>
+      <span class="t-value" id="total">$0.00</span>
+    </div>
+
+    <div class="cta-row" style="margin-top:22px;margin-bottom:0">
+      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>GUARDAR COTIZACIÓN</button>
+      <a class="btn btn-outline" href="{% url 'cotizaciones' %}">CANCELAR</a>
+    </div>
+  </form>
+</div>
+
+<template id="row-tpl">
+  <tr>
+    <td>
+      <select name="producto" class="prod-sel">
+        <option value="">— Selecciona —</option>
+        {% for p in productos %}
+        <option value="{{ p.pk }}" data-precio="{{ p.precio_unitario }}">{{ p.codigo }} — {{ p.nombre }}</option>
+        {% endfor %}
+      </select>
+    </td>
+    <td><input type="number" name="cantidad" class="cant" min="1" value="1"></td>
+    <td class="num punit muted">$0.00</td>
+    <td class="num psub">$0.00</td>
+    <td><button type="button" class="rm" title="Quitar">×</button></td>
+  </tr>
+</template>
+
+<script>
+(function () {
+  const tpl = document.getElementById('row-tpl');
+  const tbody = document.getElementById('partidas-body');
+  const totalEl = document.getElementById('total');
+  const fmt = n => '$' + n.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  function recalc() {
+    let total = 0;
+    tbody.querySelectorAll('tr').forEach(tr => {
+      const sel = tr.querySelector('.prod-sel');
+      const precio = parseFloat(sel.selectedOptions[0] && sel.selectedOptions[0].dataset.precio || 0);
+      const cant = parseFloat(tr.querySelector('.cant').value) || 0;
+      const sub = precio * cant;
+      tr.querySelector('.punit').textContent = fmt(precio);
+      tr.querySelector('.psub').textContent = fmt(sub);
+      total += sub;
+    });
+    totalEl.textContent = fmt(total) + ' MXN';
+  }
+
+  document.getElementById('add-row').addEventListener('click', () => {
+    tbody.appendChild(tpl.content.cloneNode(true));
+    recalc();
+  });
+  tbody.addEventListener('input', recalc);
+  tbody.addEventListener('change', recalc);
+  tbody.addEventListener('click', e => {
+    if (e.target.closest('.rm')) { e.target.closest('tr').remove(); recalc(); }
+  });
+
+  document.getElementById('add-row').click();
+})();
+</script>
+{% endblock %}
