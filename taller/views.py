@@ -2,6 +2,9 @@ import re
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urlencode
 
+# Marca cuándo arrancó este proceso del servidor; cambia en cada deploy/restart
+SERVER_STAMP = str(int(__import__("time").time()))
+
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
@@ -265,6 +268,10 @@ def cliente_nueva(request):
 
 
 MAX_EMPLEADOS = 3
+
+
+def version(request):
+    return JsonResponse({"v": SERVER_STAMP})
 
 
 @login_required

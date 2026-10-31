@@ -426,6 +426,17 @@
   _scrim.addEventListener('click', () => document.body.classList.remove('nav-open'));
   document.querySelectorAll('.nav-item').forEach(a =>
     a.addEventListener('click', () => document.body.classList.remove('nav-open')));
+
+  // Auto-recarga cuando el servidor se actualiza (cada 60s)
+  let _v = null;
+  setInterval(async () => {
+    try {
+      const r = await fetch('{% url "version" %}', {cache: 'no-store'});
+      const d = await r.json();
+      if (_v === null) { _v = d.v; }
+      else if (d.v !== _v) { location.reload(); }
+    } catch (e) {}
+  }, 60000);
 </script>
 </body>
 </html>
