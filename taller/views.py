@@ -187,10 +187,18 @@ def cotizacion_nueva(request):
             messages.success(request, f"Cotización {cot.folio} creada — ${cot.total:,.2f} MXN.")
             return redirect("cotizaciones")
 
+    vehiculos_map = {
+        c.pk: [
+            {"desc": v.descripcion, "img": v.imagen.url if v.imagen else ""}
+            for v in c.vehiculos.all()
+        ]
+        for c in Cliente.objects.prefetch_related("vehiculos")
+    }
     return render(request, "taller/cotizacion_form.html", {
         "clientes": Cliente.objects.all(),
         "productos": Producto.objects.filter(activo=True),
         "estados": Cotizacion.Estado.choices,
+        "vehiculos_map": vehiculos_map,
     })
 
 

@@ -21,7 +21,7 @@
     <div class="form-grid">
       <div class="field">
         <label>Cliente <span class="req">*</span></label>
-        <select name="cliente" required>
+        <select name="cliente" id="f-cliente" required>
           <option value="">— Selecciona —</option>
           {% for c in clientes %}
           <option value="{{ c.pk }}">{{ c.nombre_completo }}</option>
@@ -30,7 +30,11 @@
       </div>
       <div class="field">
         <label>Vehículo / Trabajo <span class="req">*</span></label>
-        <input type="text" name="vehiculo" required placeholder='Ej. "Nissan Sentra 2018" o "Portón herrería"'>
+        <input type="text" name="vehiculo" id="f-vehiculo" required placeholder='Ej. "Nissan Sentra 2018" o "Portón herrería"'>
+      </div>
+      <div class="field full" id="veh-pick" style="display:none">
+        <label style="font-weight:400;text-transform:none;letter-spacing:0">Vehículos del cliente — toca uno para usarlo:</label>
+        <div id="veh-cards" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       </div>
       <div class="field">
         <label>Estado</label>
@@ -67,6 +71,7 @@
   </form>
 </div>
 
+{{ vehiculos_map|json_script:"veh-map" }}
 <template id="row-tpl">
   <tr>
     <td>
@@ -116,6 +121,29 @@
   });
 
   document.getElementById('add-row').click();
+
+  const vehMap = JSON.parse(document.getElementById('veh-map').textContent);
+  const selCliente = document.getElementById('f-cliente');
+  const pick = document.getElementById('veh-pick');
+  const cards = document.getElementById('veh-cards');
+  const inpVeh = document.getElementById('f-vehiculo');
+  selCliente.addEventListener('change', function () {
+    const vehs = vehMap[selCliente.value] || [];
+    cards.innerHTML = '';
+    pick.style.display = vehs.length ? '' : 'none';
+    vehs.forEach(v => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.style.cssText = 'display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:6px 10px;background:rgba(255,255,255,.03);cursor:pointer;color:var(--text);font-size:12.5px;text-align:left';
+      card.innerHTML = (v.img ? '<img src="' + v.img + '" style="width:52px;height:38px;object-fit:cover;border-radius:6px">' : '<span style="width:52px;height:38px;display:flex;align-items:center;justify-content:center;background:#0A1235;border-radius:6px;color:var(--text-sec);font-size:18px">🚗</span>') + '<span>' + (v.desc || 'Vehículo') + '</span>';
+      card.addEventListener('click', () => {
+        inpVeh.value = v.desc || '';
+        cards.querySelectorAll('button').forEach(b => b.style.borderColor = 'var(--border)');
+        card.style.borderColor = 'var(--blue)';
+      });
+      cards.appendChild(card);
+    });
+  });
 })();
 </script>
 {% endblock %}
