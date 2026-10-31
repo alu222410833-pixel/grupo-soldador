@@ -43,14 +43,34 @@ def dashboard(request):
 @login_required
 def cotizaciones(request):
     estado = request.GET.get("estado", "")
+    q = request.GET.get("q", "").strip()
     qs = Cotizacion.objects.select_related("cliente").prefetch_related("detalles")
     if estado:
         qs = qs.filter(estado=estado)
+    if q:
+        qs = qs.filter(
+            Q(folio__icontains=q)
+            | Q(cliente__nombre__icontains=q)
+            | Q(cliente__apellido_paterno__icontains=q)
+            | Q(cliente__apellido_materno__icontains=q)
+            | Q(vehiculo__icontains=q)
+        )
     return render(request, "taller/cotizaciones.html", {
         "cotizaciones": qs[:100],
         "estados": Cotizacion.Estado.choices,
         "estado_actual": estado,
+        "q": q,
     })
+
+
+@login_required
+def cotizacion_detalle(request, pk):
+    cot = get_object_or_404(
+        Cotizacion.objects.select_related("cliente", "creado_por")
+        .prefetch_related("detalles__producto"),
+        pk=pk,
+    )
+    return render(request, "taller/cotizacion_detalle.html", {"cot": cot})
 
 
 @login_required

@@ -9,21 +9,30 @@
   <a class="btn btn-primary" href="{% url 'cotizacion_nueva' %}">+ NUEVA COTIZACIÓN</a>
 </div>
 
-<div class="filters">
-  <a href="{% url 'cotizaciones' %}" class="{% if not estado_actual %}on{% endif %}">Todas</a>
-  {% for valor, etiqueta in estados %}
-  <a href="?estado={{ valor }}" class="{% if estado_actual == valor %}on{% endif %}">{{ etiqueta }}</a>
-  {% endfor %}
+<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px">
+  <div class="filters" style="margin-bottom:0">
+    <a href="{% url 'cotizaciones' %}{% if q %}?q={{ q }}{% endif %}" class="{% if not estado_actual %}on{% endif %}">Todas</a>
+    {% for valor, etiqueta in estados %}
+    <a href="?estado={{ valor }}{% if q %}&q={{ q }}{% endif %}" class="{% if estado_actual == valor %}on{% endif %}">{{ etiqueta }}</a>
+    {% endfor %}
+  </div>
+  <form class="search-form" method="get">
+    {% if estado_actual %}<input type="hidden" name="estado" value="{{ estado_actual }}">{% endif %}
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar por folio, cliente o vehículo…">
+    <button type="submit" class="btn btn-outline">BUSCAR</button>
+    {% if q %}<a class="btn btn-outline" href="{% url 'cotizaciones' %}{% if estado_actual %}?estado={{ estado_actual }}{% endif %}">LIMPIAR</a>{% endif %}
+  </form>
 </div>
 
 <div class="card">
   <table>
     <thead>
-      <tr><th>Folio</th><th>Cliente</th><th>Vehículo / Servicio</th><th class="num">Monto</th><th>Estado</th><th>Fecha</th></tr>
+      <tr><th></th><th>Folio</th><th>Cliente</th><th>Vehículo / Servicio</th><th class="num">Monto</th><th>Estado</th><th>Fecha</th></tr>
     </thead>
     <tbody>
       {% for c in cotizaciones %}
       <tr>
+        <td><a class="eye" href="{% url 'cotizacion_detalle' c.pk %}" title="Ver cotización"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></a></td>
         <td class="folio">{{ c.folio }}</td>
         <td>{{ c.cliente.nombre_completo }}</td>
         <td class="muted">{{ c.vehiculo }}</td>
@@ -38,7 +47,7 @@
         <td class="muted">{{ c.creado_en|date:"d/m/Y H:i" }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="6" class="empty">No hay cotizaciones con este filtro.</td></tr>
+      <tr><td colspan="7" class="empty">No hay cotizaciones con este filtro.</td></tr>
       {% endfor %}
     </tbody>
   </table>
