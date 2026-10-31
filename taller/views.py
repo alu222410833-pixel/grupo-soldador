@@ -248,3 +248,35 @@ def servicios(request):
     return render(request, "taller/servicios.html", {
         "servicios": Producto.objects.filter(tipo=Producto.Tipo.MANO_OBRA)[:200],
     })
+
+
+@login_required
+def servicio_nuevo(request):
+    if request.method == "POST":
+        codigo = request.POST.get("codigo", "").strip().upper()
+        nombre = request.POST.get("nombre", "").strip()
+        try:
+            precio = Decimal(request.POST.get("precio_unitario", ""))
+        except InvalidOperation:
+            precio = None
+
+        if not codigo or not nombre:
+            messages.error(request, "Código y nombre son obligatorios.")
+        elif precio is None or precio < 0:
+            messages.error(request, "Ingresa un precio válido.")
+        elif Producto.objects.filter(codigo=codigo).exists():
+            messages.error(request, f"El código {codigo} ya existe.")
+        else:
+            Producto.objects.create(
+                codigo=codigo,
+                nombre=nombre,
+                descripcion=request.POST.get("descripcion", "").strip(),
+                tipo=Producto.Tipo.MANO_OBRA,
+                precio_unitario=precio,
+                stock=0,
+                stock_minimo=0,
+            )
+            messages.success(request, f"Servicio {codigo} registrado.")
+            return redirect("servicios")
+
+    return render(request, "taller/servicio_form.html")

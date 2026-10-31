@@ -6,6 +6,7 @@ urlpatterns = [
     path("inventario/", views.inventario, name="inventario"),
     path("inventario/nuevo/", views.producto_nuevo, name="producto_nuevo"),
     path("servicios/", views.servicios, name="servicios"),
+    path("servicios/nuevo/", views.servicio_nuevo, name="servicio_nuevo"),
     path("cotizaciones/", views.cotizaciones, name="cotizaciones"),
     path("cotizaciones/nueva/", views.cotizacion_nueva, name="cotizacion_nueva"),
     path("clientes/", views.clientes, name="clientes"),
