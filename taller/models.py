@@ -73,6 +73,28 @@ class Producto(models.Model):
         return f"{self.codigo} — {self.nombre}"
 
 
+class MovimientoStock(models.Model):
+    """Entrada/salida de inventario — el stock nunca se edita a mano, se ajusta."""
+
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name="movimientos")
+    delta = models.IntegerField(help_text="+ entrada, − salida")
+    motivo = models.CharField(max_length=200, blank=True)
+    creado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name="movimientos_stock",
+    )
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-creado_en"]
+        verbose_name = "Movimiento de stock"
+        verbose_name_plural = "Movimientos de stock"
+
+    def __str__(self):
+        signo = "+" if self.delta >= 0 else ""
+        return f"{signo}{self.delta} × {self.producto.codigo}"
+
+
 class Cotizacion(models.Model):
     class Estado(models.TextChoices):
         BORRADOR = "BORRADOR", "Borrador"

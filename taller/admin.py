@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Categoria, Cliente, Producto, Cotizacion, DetalleCotizacion
+from .models import Categoria, Cliente, Producto, Cotizacion, DetalleCotizacion, MovimientoStock
 
 
 @admin.register(Categoria)
@@ -24,6 +24,13 @@ class ProductoAdmin(admin.ModelAdmin):
     @admin.display(boolean=True, description="Stock bajo")
     def alerta_stock(self, obj):
         return obj.stock_bajo
+
+
+@admin.register(MovimientoStock)
+class MovimientoStockAdmin(admin.ModelAdmin):
+    list_display = ("producto", "delta", "motivo", "creado_por", "creado_en")
+    list_filter = ("creado_en",)
+    search_fields = ("producto__codigo", "producto__nombre", "motivo")
 
 
 class DetalleInline(admin.TabularInline):

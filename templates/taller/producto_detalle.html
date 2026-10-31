@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}{{ p.codigo }} — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Inventario / {{ p.codigo }}</div>
+    <h1>{{ p.nombre }}</h1>
+  </div>
+  <div class="cta-row" style="margin:0">
+    <a class="btn btn-outline" href="{% url 'producto_editar' p.pk %}">EDITAR</a>
+    <form method="post" action="{% url 'producto_toggle' p.pk %}" style="margin:0">
+      {% csrf_token %}
+      <button class="btn btn-outline" type="submit">{% if p.activo %}DESACTIVAR{% else %}REACTIVAR{% endif %}</button>
+    </form>
+    <a class="btn btn-outline" href="{% url 'inventario' %}">← VOLVER</a>
+  </div>
+</div>
+
+<div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+  <div class="kpi">
+    <div><div class="label">Código / tipo</div><div class="value">{{ p.codigo }}</div><div class="sub">{{ p.get_tipo_display }}</div></div>
+    <div class="kpi-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14v10M4 7v10l8 4"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div><div class="label">Precio unitario</div><div class="value">${{ p.precio_unitario|floatformat:2 }}</div><div class="sub">MXN</div></div>
+    <div class="kpi-icon amber"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-2.2 0-4 1.3-4 3s1.8 3 4 3 4 1.3 4 3-1.8 3-4 3m0-12v-2m0 14v2"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div><div class="label">Stock actual</div><div class="value">{{ p.stock }}</div><div class="sub">mínimo {{ p.stock_minimo }}</div></div>
+    <div class="kpi-icon {% if p.stock_bajo %}red{% endif %}"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0v10l-8 4-8-4V7"/></svg></div>
+  </div>
+  <div class="kpi">
+    <div><div class="label">Partidas cotizadas</div><div class="value">{{ lineas|length }}</div><div class="sub">en cotizaciones</div></div>
+    <div class="kpi-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:{% if p.imagen %}300px 1fr{% else %}1fr{% endif %};gap:18px;margin-bottom:18px" class="detail-grid">
+  {% if p.imagen %}
+  <div class="card" style="display:flex;align-items:center;justify-content:center;padding:14px">
+    <img src="{{ p.imagen.url }}" alt="{{ p.nombre }}" style="max-width:100%;max-height:240px;border-radius:10px;object-fit:contain">
+  </div>
+  {% endif %}
+  <div class="card" style="padding:18px 20px">
+    <div class="sec-h">DATOS</div>
+    <table class="kv">
+      <tr><td class="muted">Código</td><td class="folio">{{ p.codigo }}</td></tr>
+      <tr><td class="muted">Tipo</td><td>{{ p.get_tipo_display }}</td></tr>
+      <tr><td class="muted">Categoría</td><td>{% if p.categoria %}<span class="badge b-info">{{ p.categoria }}</span>{% else %}<span class="muted">—</span>{% endif %}</td></tr>
+      <tr><td class="muted">Estado</td><td>{% if p.stock_bajo %}<span class="badge b-bad">Stock bajo</span>{% elif p.activo %}<span class="badge b-ok">Disponible</span>{% else %}<span class="badge b-grey">Inactivo</span>{% endif %}</td></tr>
+      {% if p.descripcion %}<tr><td class="muted">Descripción</td><td>{{ p.descripcion }}</td></tr>{% endif %}
+    </table>
+    {% if p.tipo != 'MANO_OBRA' %}
+    <div class="sec-h" style="margin-top:18px">AJUSTE DE STOCK</div>
+    <form method="post" action="{% url 'producto_ajustar' p.pk %}" style="display:flex;gap:8px;flex-wrap:wrap">
+      {% csrf_token %}
+      <input type="number" name="delta" required placeholder="± cantidad" style="width:130px">
+      <input type="text" name="motivo" placeholder="Motivo (ej. compra, uso en trabajo)" style="flex:1;min-width:160px">
+      <button class="btn btn-outline" type="submit" style="height:40px">AJUSTAR</button>
+    </form>
+    <p class="muted" style="margin:6px 0 0;font-size:11px">+ entrada, − salida. El stock no se edita a mano — queda historial.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px" class="detail-grid">
+  <div class="card">
+    <div class="sec-h" style="padding:16px 18px 0">MOVIMIENTOS DE STOCK</div>
+    <table>
+      <thead><tr><th>Fecha</th><th class="num">Δ</th><th>Motivo</th><th>Por</th></tr></thead>
+      <tbody>
+        {% for m in movimientos %}
+        <tr>
+          <td class="muted">{{ m.creado_en|date:"d/m/y H:i" }}</td>
+          <td class="num {% if m.delta < 0 %}neg{% endif %}">{% if m.delta > 0 %}+{% endif %}{{ m.delta }}</td>
+          <td>{{ m.motivo|default:"—" }}</td>
+          <td class="muted">{{ m.creado_por|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="empty">Sin movimientos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="sec-h" style="padding:16px 18px 0">APARECE EN COTIZACIONES</div>
+    <table>
+      <thead><tr><th>Folio</th><th>Cliente</th><th class="num">Cant.</th><th>Estado</th><th>Fecha</th></tr></thead>
+      <tbody>
+        {% for d in lineas %}
+        <tr>
+          <td class="folio">{{ d.cotizacion.folio }}</td>
+          <td>{{ d.cotizacion.cliente.nombre }}</td>
+          <td class="num">{{ d.cantidad }}</td>
+          <td><span class="badge {% if d.cotizacion.estado == 'APROBADA' %}b-ok{% elif d.cotizacion.estado == 'RECHAZADA' %}b-bad{% elif d.cotizacion.estado == 'PENDIENTE' %}b-warn{% else %}b-info{% endif %}">{{ d.cotizacion.get_estado_display }}</span></td>
+          <td class="muted">{{ d.cotizacion.creado_en|date:"d/m/y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty">Aún no aparece en ninguna cotización.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

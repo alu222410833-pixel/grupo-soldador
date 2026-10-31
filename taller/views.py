@@ -5,12 +5,12 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.core.paginator import Paginator
 from django.db.models import Sum, F, DecimalField, ExpressionWrapper, Count, Q
 from django.http import JsonResponse
 from django.utils import timezone
-from .models import Categoria, Cliente, Cotizacion, DetalleCotizacion, Producto
+from .models import Categoria, Cliente, Cotizacion, DetalleCotizacion, MovimientoStock, Producto
 
 
 @login_required
@@ -286,17 +286,110 @@ def inventario(request):
             | Q(nombre__icontains=buscar)
             | Q(categoria__nombre__icontains=buscar)
         )
+    orden = request.GET.get("sort", "")
+    dire = request.GET.get("dir", "asc")
+    SORTS = {
+        "codigo": "codigo", "nombre": "nombre", "categoria": "categoria__nombre",
+        "tipo": "tipo", "precio": "precio_unitario", "stock": "stock", "estado": "activo",
+    }
+    if orden in SORTS:
+        qs = qs.order_by(("-" if dire == "desc" else "") + SORTS[orden], "codigo")
     pagina = Paginator(qs, 15).get_page(request.GET.get("page") or 1)
     productos = list(pagina.object_list)
-    params = urlencode({k: v for k, v in [("tipo", tipo), ("q", buscar)] if v})
+    params_base = urlencode({k: v for k, v in [("tipo", tipo), ("q", buscar)] if v})
+    params = params_base + ("&" if params_base else "") + urlencode({"sort": orden, "dir": dire}) if orden else params_base
     return render(request, "taller/inventario.html", {
         "productos": productos,
         "pagina": pagina,
         "params": params,
+        "params_base": params_base,
         "buscar": buscar,
+        "orden": orden,
+        "dire": dire,
         "hay_fotos": any(p.imagen for p in productos),
         "tipos": [(v, l) for v, l in Producto.Tipo.choices if v != Producto.Tipo.MANO_OBRA],
         "tipo_actual": tipo,
+    })
+
+
+@login_required
+def producto_detalle(request, pk):
+    p = get_object_or_404(Producto.objects.select_related("categoria"), pk=pk)
+    lineas = (
+        DetalleCotizacion.objects.filter(producto=p)
+        .select_related("cotizacion", "cotizacion__cliente")
+        .order_by("-cotizacion__creado_en")[:50]
+    )
+    return render(request, "taller/producto_detalle.html", {
+        "p": p,
+        "lineas": lineas,
+        "movimientos": p.movimientos.select_related("creado_por")[:50],
+    })
+
+
+@login_required
+def producto_ajustar(request, pk):
+    p = get_object_or_404(Producto, pk=pk)
+    if request.method == "POST":
+        try:
+            delta = int(request.POST.get("delta", ""))
+        except ValueError:
+            delta = 0
+        motivo = request.POST.get("motivo", "").strip()
+        if delta == 0:
+            messages.error(request, "El ajuste no puede ser 0.")
+        elif p.tipo == Producto.Tipo.MANO_OBRA:
+            messages.error(request, "La mano de obra no lleva stock.")
+        elif p.stock + delta < 0:
+            messages.error(request, f"Stock insuficiente: hay {p.stock}, no se pueden sacar {-delta}.")
+        else:
+            MovimientoStock.objects.create(
+                producto=p, delta=delta, motivo=motivo, creado_por=request.user
+            )
+            Producto.objects.filter(pk=p.pk).update(stock=p.stock + delta)
+            messages.success(request, f"Stock de {p.codigo}: {p.stock} → {p.stock + delta} ({delta:+d}).")
+    return redirect("producto_detalle", pk=pk)
+
+
+@login_required
+def producto_toggle(request, pk):
+    p = get_object_or_404(Producto, pk=pk)
+    if request.method == "POST":
+        p.activo = not p.activo
+        p.save(update_fields=["activo"])
+        messages.success(request, f"{p.codigo} {'activado' if p.activo else 'desactivado'}.")
+    return redirect("producto_detalle", pk=pk)
+
+
+@login_required
+def producto_editar(request, pk):
+    p = get_object_or_404(Producto, pk=pk)
+    if request.method == "POST":
+        nombre = request.POST.get("nombre", "").strip()
+        try:
+            precio = Decimal(request.POST.get("precio_unitario", ""))
+        except InvalidOperation:
+            precio = None
+        if not nombre:
+            messages.error(request, "El nombre es obligatorio.")
+        elif precio is None or precio < 0:
+            messages.error(request, "Ingresa un precio válido.")
+        else:
+            p.nombre = nombre
+            p.descripcion = request.POST.get("descripcion", "").strip()
+            p.categoria = Categoria.objects.filter(pk=request.POST.get("categoria") or 0).first()
+            p.precio_unitario = precio
+            sm = request.POST.get("stock_minimo", "")
+            p.stock_minimo = int(sm) if sm.isdigit() else p.stock_minimo
+            img = request.FILES.get("imagen") or request.FILES.get("imagen_camara")
+            if img:
+                p.imagen = img
+            p.save()
+            messages.success(request, f"Producto {p.codigo} actualizado.")
+            return redirect("producto_detalle", pk=pk)
+    return render(request, "taller/producto_editar.html", {
+        "p": p,
+        "categorias_flat": [{"id": c.pk, "label": str(c)} for c in Categoria.objects.select_related("parent")],
     })
 
 

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}Editar {{ p.codigo }} — Grupo Soldador M.A.M{% endblock %}
+{% block content %}
+<div class="topbar">
+  <div>
+    <div class="crumb">Páginas / Inventario / {{ p.codigo }} / Editar</div>
+    <h1>Editar {{ p.codigo }}</h1>
+  </div>
+</div>
+
+<div class="card form-card">
+  <div class="form-head">
+    <div class="fic orange"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.4-9.4a2 2 0 112.8 2.8L11 15l-4 1 1-4 8.4-8.4z"/></svg></div>
+    <div>
+      <h2>{{ p.nombre }}</h2>
+      <p>Código y tipo no se editan — el stock se mueve por ajustes en el detalle.</p>
+    </div>
+  </div>
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field">
+        <label>Código / SKU</label>
+        <input type="text" value="{{ p.codigo }}" disabled>
+      </div>
+      <div class="field">
+        <label>Tipo</label>
+        <input type="text" value="{{ p.get_tipo_display }}" disabled>
+      </div>
+      <div class="field full">
+        <label>Nombre <span class="req">*</span></label>
+        <input type="text" name="nombre" required value="{{ p.nombre }}">
+      </div>
+      <div class="field" style="position:relative">
+        <label>Categoría</label>
+        <input type="text" id="f-cat-search" placeholder="Buscar categoría…" autocomplete="off" style="width:100%" value="{% if p.categoria %}{{ p.categoria }}{% endif %}">
+        <input type="hidden" name="categoria" id="f-cat" value="{{ p.categoria_id|default:'' }}">
+        <div id="cat-list" style="display:none;position:absolute;z-index:40;left:0;right:0;max-height:200px;overflow-y:auto;background:#0A1235;border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.5)"></div>
+      </div>
+      <div class="field">
+        <label>Foto (reemplazar)</label>
+        <div style="display:flex;gap:8px">
+          <input type="file" id="img-file" name="imagen" accept="image/*" hidden>
+          <label for="img-file" class="btn btn-outline" style="flex:1;justify-content:center;font-size:12px;padding:9px 8px">Elegir archivo</label>
+          <input type="file" id="img-cam" name="imagen_camara" accept="image/*" capture="environment" hidden>
+          <label for="img-cam" class="btn btn-outline" style="flex:1;justify-content:center;font-size:12px;padding:9px 8px">Tomar foto</label>
+        </div>
+        <p class="muted" id="img-name" style="margin:4px 0 0;font-size:11px">{% if p.imagen %}Actual: {{ p.imagen.name|slice:"10:" }} — sube otra para reemplazar.{% else %}Sin foto — sube archivo o toma foto.{% endif %}</p>
+      </div>
+      <div class="field">
+        <label>Precio unitario (MXN) <span class="req">*</span></label>
+        <input type="number" name="precio_unitario" step="0.01" min="0" required value="{{ p.precio_unitario }}">
+      </div>
+      <div class="field">
+        <label>Stock mínimo (alerta)</label>
+        <input type="number" name="stock_minimo" min="0" value="{{ p.stock_minimo }}">
+      </div>
+      <div class="field full">
+        <label>Descripción</label>
+        <input type="text" name="descripcion" value="{{ p.descripcion }}" placeholder="Ej. Electrodo para acero al carbono">
+      </div>
+    </div>
+    <div class="cta-row" style="margin-top:22px;margin-bottom:0">
+      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>GUARDAR CAMBIOS</button>
+      <a class="btn btn-outline" href="{% url 'producto_detalle' p.pk %}">CANCELAR</a>
+    </div>
+  </form>
+</div>
+{{ categorias_flat|json_script:"cats-map" }}
+<script>
+(function () {
+  const cats = JSON.parse(document.getElementById('cats-map').textContent);
+  const inpCat = document.getElementById('f-cat-search');
+  const hidCat = document.getElementById('f-cat');
+  const listaCat = document.getElementById('cat-list');
+  function pintarLista(q) {
+    const t = q.trim().toLowerCase();
+    const hits = cats.filter(c => !t || c.label.toLowerCase().includes(t)).slice(0, 50);
+    listaCat.innerHTML = '';
+    if (!hits.length) { listaCat.style.display = 'none'; return; }
+    hits.forEach(c => {
+      const div = document.createElement('div');
+      div.textContent = c.label;
+      div.style.cssText = 'padding:8px 12px;cursor:pointer;font-size:13px;color:var(--text)';
+      div.onmouseenter = () => div.style.background = '#141E42';
+      div.onmouseleave = () => div.style.background = 'transparent';
+      div.onmousedown = (e) => { e.preventDefault(); inpCat.value = c.label; hidCat.value = c.id; listaCat.style.display = 'none'; };
+      listaCat.appendChild(div);
+    });
+    listaCat.style.display = 'block';
+  }
+  inpCat.addEventListener('focus', () => pintarLista(inpCat.value));
+  inpCat.addEventListener('input', () => { hidCat.value = ''; pintarLista(inpCat.value); });
+  inpCat.addEventListener('blur', () => setTimeout(() => listaCat.style.display = 'none', 150));
+
+  const imgFile = document.getElementById('img-file');
+  const imgCam = document.getElementById('img-cam');
+  const imgName = document.getElementById('img-name');
+  imgFile.addEventListener('change', () => { if (imgFile.files[0]) { imgCam.value = ''; imgName.textContent = 'Nueva: ' + imgFile.files[0].name; } });
+  imgCam.addEventListener('change', () => { if (imgCam.files[0]) { imgFile.value = ''; imgName.textContent = 'Nueva: ' + imgCam.files[0].name; } });
+})();
+</script>
+{% endblock %}
