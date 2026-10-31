@@ -19,12 +19,12 @@
 <div class="card">
   <table>
     <thead>
-      <tr><th></th><th>Código</th><th>Nombre</th><th>Categoría</th><th>Tipo</th><th class="num">Precio</th><th class="num">Stock</th><th>Estado</th></tr>
+      <tr>{% if hay_fotos %}<th></th>{% endif %}<th>Código</th><th>Nombre</th><th>Categoría</th><th>Tipo</th><th class="num">Precio</th><th class="num">Stock</th><th>Estado</th></tr>
     </thead>
     <tbody>
       {% for p in productos %}
       <tr>
-        <td>{% if p.imagen %}<img class="thumb" src="{{ p.imagen.url }}" alt="{{ p.nombre }}">{% else %}<span class="thumb thumb-empty"></span>{% endif %}</td>
+        {% if hay_fotos %}<td>{% if p.imagen %}<img class="thumb" src="{{ p.imagen.url }}" alt="{{ p.nombre }}">{% endif %}</td>{% endif %}
         <td class="folio">{{ p.codigo }}</td>
         <td>{{ p.nombre }}</td>
         <td>{% if p.categoria %}<span class="badge b-info">{{ p.categoria }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
@@ -38,7 +38,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="8" class="empty">Sin productos. Regístralos desde "Nuevo Producto".</td></tr>
+      <tr><td colspan="{% if hay_fotos %}8{% else %}7{% endif %}" class="empty">Sin productos. Regístralos desde "Nuevo Producto".</td></tr>
       {% endfor %}
     </tbody>
   </table>

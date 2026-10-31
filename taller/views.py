@@ -236,8 +236,10 @@ def inventario(request):
     qs = Producto.objects.select_related("categoria").exclude(tipo=Producto.Tipo.MANO_OBRA)
     if tipo:
         qs = qs.filter(tipo=tipo)
+    productos = list(qs[:200])
     return render(request, "taller/inventario.html", {
-        "productos": qs[:200],
+        "productos": productos,
+        "hay_fotos": any(p.imagen for p in productos),
         "tipos": [(v, l) for v, l in Producto.Tipo.choices if v != Producto.Tipo.MANO_OBRA],
         "tipo_actual": tipo,
     })
