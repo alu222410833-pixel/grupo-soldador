@@ -51,14 +51,34 @@
       {% if p.descripcion %}<tr><td class="muted">Descripción</td><td>{{ p.descripcion }}</td></tr>{% endif %}
     </table>
     {% if p.tipo != 'MANO_OBRA' %}
-    <div class="sec-h" style="margin-top:18px">AJUSTE DE STOCK</div>
+    <div class="sec-h" style="margin-top:18px;display:flex;align-items:center;gap:8px">
+      AJUSTE DE STOCK
+      <button type="button" id="info-btn" title="¿Cómo funciona?" style="width:18px;height:18px;border-radius:50%;border:1px solid var(--text-sec);background:transparent;color:var(--text-sec);font-size:11px;font-weight:700;line-height:1;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center">i</button>
+    </div>
+    <div id="info-pop" style="display:none;position:relative;background:#0A1235;border:1px solid var(--blue);border-radius:10px;padding:12px 14px;font-size:12px;line-height:1.55;margin-bottom:12px;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+      <b style="color:var(--blue)">¿Cómo funciona el ajuste de stock?</b>
+      <ul style="margin:8px 0 0;padding-left:18px;color:var(--text)">
+        <li><b>+ compra</b> — escribe <code>10</code> si compraste 10 piezas → el stock sube.</li>
+        <li><b>− uso / venta</b> — escribe <code>-3</code> si usaste 3 en un trabajo → el stock baja.</li>
+        <li><b>Motivo</b> — di por qué: "compra proveedor", "uso en soldadura de portón"…</li>
+        <li>Cada ajuste queda en el <b>historial</b> con fecha y empleado — nada se borra.</li>
+        <li>No permite dejar el stock en negativo.</li>
+      </ul>
+      <button type="button" onclick="document.getElementById('info-pop').style.display='none'" style="position:absolute;top:6px;right:10px;background:none;border:none;color:var(--text-sec);cursor:pointer;font-size:14px">×</button>
+    </div>
     <form method="post" action="{% url 'producto_ajustar' p.pk %}" style="display:flex;gap:8px;flex-wrap:wrap">
       {% csrf_token %}
-      <input type="number" name="delta" required placeholder="± cantidad" style="width:130px">
-      <input type="text" name="motivo" placeholder="Motivo (ej. compra, uso en trabajo)" style="flex:1;min-width:160px">
-      <button class="btn btn-outline" type="submit" style="height:40px">AJUSTAR</button>
+      <div class="field" style="width:130px"><input type="number" name="delta" required placeholder="± cantidad"></div>
+      <div class="field" style="flex:1;min-width:160px"><input type="text" name="motivo" placeholder="Motivo (ej. compra, uso en trabajo)"></div>
+      <button class="btn btn-primary" type="submit" style="height:42px">AJUSTAR</button>
     </form>
-    <p class="muted" style="margin:6px 0 0;font-size:11px">+ entrada, − salida. El stock no se edita a mano — queda historial.</p>
+    <p class="muted" style="margin:6px 0 0;font-size:11px">Ejemplos: <b>+10</b> compra proveedor · <b>-3</b> uso en trabajo. Cada ajuste queda registrado abajo.</p>
+    <script>
+      document.getElementById('info-btn').addEventListener('click', function () {
+        var p = document.getElementById('info-pop');
+        p.style.display = p.style.display === 'none' ? 'block' : 'none';
+      });
+    </script>
     {% endif %}
   </div>
 </div>
