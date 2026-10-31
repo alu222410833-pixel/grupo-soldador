@@ -20,17 +20,17 @@
     {% csrf_token %}
     <div class="form-grid">
       <div class="field">
-        <label>Código / SKU <span class="req">*</span></label>
-        <input type="text" name="codigo" id="f-codigo" required placeholder="Ej. ELEC-7018" autocomplete="off">
-        <p class="muted" style="margin:4px 0 0;font-size:11px" id="codigo-hint">Proposé selon le type — modifiable.</p>
-      </div>
-      <div class="field">
         <label>Tipo <span class="req">*</span></label>
         <select name="tipo" id="f-tipo">
           {% for valor, etiqueta in tipos %}
           <option value="{{ valor }}" {% if tipo_inicial == valor %}selected{% endif %}>{{ etiqueta }}</option>
           {% endfor %}
         </select>
+      </div>
+      <div class="field">
+        <label>Código / SKU <span class="req">*</span></label>
+        <input type="text" name="codigo" id="f-codigo" required placeholder="Ej. ELEC-7018" autocomplete="off">
+        <p class="muted" style="margin:4px 0 0;font-size:11px" id="codigo-hint">Proposé selon le type — modifiable.</p>
       </div>
       <div class="field full">
         <label>Nombre <span class="req">*</span></label>
