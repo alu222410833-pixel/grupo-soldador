@@ -9,7 +9,13 @@
 </div>
 
 <div class="card form-card">
-  <div class="card-head" style="padding-left:0;padding-right:0"><h2>Credenciales de acceso</h2></div>
+  <div class="form-head">
+    <div class="fic blue"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></div>
+    <div>
+      <h2>Credenciales de acceso</h2>
+      <p>El empleado entrará al sistema con su usuario y contraseña.</p>
+    </div>
+  </div>
   <form method="post">
     {% csrf_token %}
     <div class="form-grid">
@@ -22,20 +28,20 @@
         <input type="text" name="last_name" placeholder="Ej. Pérez">
       </div>
       <div class="field">
-        <label>Usuario *</label>
+        <label>Usuario <span class="req">*</span></label>
         <input type="text" name="username" required placeholder="Ej. jperez">
       </div>
       <div class="field">
-        <label>Contraseña *</label>
+        <label>Contraseña <span class="req">*</span></label>
         <input type="password" name="password" required>
       </div>
     </div>
     <label class="check">
       <input type="checkbox" name="es_admin">
-      Puede administrar (acceso al panel /admin/ y gestión de usuarios)
+      <span>Puede administrar <span class="muted">(acceso al panel /admin/ y gestión de usuarios)</span></span>
     </label>
     <div class="cta-row" style="margin-top:22px;margin-bottom:0">
-      <button class="btn btn-primary" type="submit">CREAR EMPLEADO</button>
+      <button class="btn btn-primary" type="submit"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>CREAR EMPLEADO</button>
       <a class="btn btn-outline" href="{% url 'usuarios' %}">CANCELAR</a>
     </div>
   </form>

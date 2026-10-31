@@ -172,17 +172,31 @@
   .empty { padding: 40px; text-align: center; color: var(--text-sec); }
 
   /* ---------- Formularios ---------- */
-  .form-card { max-width: 520px; }
+  .form-card { max-width: 560px; }
+  .form-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .form-head .fic {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .form-head .fic svg { width: 20px; height: 20px; color: #fff; }
+  .fic.orange { background: linear-gradient(135deg, var(--accent), #FF8A00); box-shadow: 0 0 20px rgba(249,115,22,.45); }
+  .fic.blue { background: var(--blue); box-shadow: 0 0 20px rgba(0,117,255,.5); }
+  .fic.green { background: var(--green); box-shadow: 0 0 20px rgba(1,181,116,.4); }
+  .form-head h2 { font-size: 15px; font-weight: 700; }
+  .form-head p { font-size: 12px; color: var(--text-sec); margin-top: 2px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .form-grid .full { grid-column: 1 / -1; }
   .field label { display: block; font-size: 11px; font-weight: 700; letter-spacing: .05em; color: var(--text-sec); margin-bottom: 6px; text-transform: uppercase; }
+  .req { color: var(--accent); }
   .field input, .field select {
     width: 100%; padding: 11px 14px;
     background: #0F1534; border: 1px solid var(--border);
     border-radius: 10px; color: #fff;
     font-family: inherit; font-size: 13.5px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
   }
-  .field input:focus, .field select:focus { border-color: var(--blue); box-shadow: 0 0 12px rgba(0,117,255,.3); }
+  .field input::placeholder { color: #4A5878; }
+  .field input:focus, .field select:focus { border-color: var(--accent); box-shadow: 0 0 14px rgba(249,115,22,.25); }
   .check { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-size: 13px; color: var(--text-sec); }
   .check input { width: 16px; height: 16px; accent-color: var(--accent); }
 
