@@ -101,6 +101,8 @@ class DetalleCotizacion(models.Model):
 
     @property
     def subtotal(self):
+        if self.precio_unitario is None:
+            return None
         return self.cantidad * self.precio_unitario
 
     def save(self, *args, **kwargs):
