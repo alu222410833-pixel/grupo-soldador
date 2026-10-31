@@ -18,18 +18,19 @@
 <div class="card">
   <table>
     <thead>
-      <tr><th>Código</th><th>Nombre</th><th class="num">Precio</th><th>Estado</th></tr>
+      <tr><th></th><th>Código</th><th>Nombre</th><th class="num">Precio</th><th>Estado</th></tr>
     </thead>
     <tbody>
       {% for s in servicios %}
       <tr>
+        <td><a class="eye" href="{% url 'producto_detalle' s.pk %}" title="Ver detalle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></a></td>
         <td class="folio">{{ s.codigo }}</td>
         <td>{{ s.nombre }}</td>
         <td class="num">${{ s.precio_unitario|floatformat:2 }}</td>
         <td>{% if s.activo %}<span class="badge b-ok">Disponible</span>{% else %}<span class="badge b-grey">Inactivo</span>{% endif %}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Sin servicios. Regístralos desde "Nuevo Servicio".{% endif %}</td></tr>
+      <tr><td colspan="5" class="empty">{% if buscar %}Sin resultados para "{{ buscar }}".{% else %}Sin servicios. Regístralos desde "Nuevo Servicio".{% endif %}</td></tr>
       {% endfor %}
     </tbody>
   </table>

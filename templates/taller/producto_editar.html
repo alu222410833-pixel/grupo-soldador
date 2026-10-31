@@ -51,10 +51,12 @@
         <label>Precio unitario (MXN) <span class="req">*</span></label>
         <input type="number" name="precio_unitario" step="0.01" min="0" required value="{{ p.precio_unitario }}">
       </div>
+      {% if p.tipo != 'MANO_OBRA' %}
       <div class="field">
         <label>Stock mínimo (alerta)</label>
         <input type="number" name="stock_minimo" min="0" value="{{ p.stock_minimo }}">
       </div>
+      {% endif %}
       <div class="field full">
         <label>Descripción</label>
         <input type="text" name="descripcion" value="{{ p.descripcion }}" placeholder="Ej. Electrodo para acero al carbono">
