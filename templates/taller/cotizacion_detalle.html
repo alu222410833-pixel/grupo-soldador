@@ -11,18 +11,15 @@
   .doc-box p { margin: 3px 0; font-size: 13.5px; }
   .doc-total { text-align: right; font-size: 24px; font-weight: 800; color: var(--accent); margin-top: 14px; }
   .doc-notas { margin-top: 16px; font-size: 13px; }
-  .doc-firma { margin-top: 44px; display: flex; justify-content: space-between; gap: 30px; }
-  .doc-firma .lin { flex: 1; text-align: center; font-size: 11.5px; color: var(--text-sec); }
-  .doc-firma .lin span { display: block; border-top: 1px solid var(--text-sec); padding-top: 6px; margin: 0 18px; }
-
+  @page { margin: 0; }
   @media print {
-    body { background: #fff !important; color: #111 !important; }
+    body { background: #fff !important; color: #111 !important; padding: 40px !important; }
     .sidebar, .mobile-bar, .scrim, .topbar, .no-print { display: none !important; }
     .main { padding: 0 !important; margin: 0 !important; }
     .card { border: none !important; box-shadow: none !important; background: #fff !important; padding: 0 !important; }
     .doc-folio, .doc-box p, .doc-notas, td, th { color: #111 !important; }
     .doc-box { border-color: #bbb !important; }
-    .doc-box h4, .muted, .doc-firma .lin { color: #555 !important; }
+    .doc-box h4, .muted { color: #555 !important; }
     table { min-width: 0 !important; }
     th { border-bottom: 2px solid #333 !important; }
     td { border-bottom: 1px solid #ccc !important; }
@@ -46,9 +43,9 @@
   <div class="doc-head">
     <div>
       <div class="doc-folio">{{ cot.folio }}</div>
-      <div class="muted" style="font-size:12.5px">Emitida {{ cot.creado_en|date:"d/m/Y H:i" }} · por {{ cot.creado_por.get_full_name|default:cot.creado_por.username }}</div>
+      <div class="muted no-print" style="font-size:12.5px">Emitida {{ cot.creado_en|date:"d/m/Y H:i" }} · por {{ cot.creado_por.get_full_name|default:cot.creado_por.username }}</div>
     </div>
-    <div>
+    <div class="no-print">
       {% if cot.estado == 'APROBADA' %}<span class="badge b-ok">Aprobada</span>
       {% elif cot.estado == 'PENDIENTE' %}<span class="badge b-warn">Pendiente</span>
       {% elif cot.estado == 'RECHAZADA' %}<span class="badge b-bad">Rechazada</span>
@@ -68,7 +65,6 @@
     <div class="doc-box">
       <h4>Vehículo / Trabajo</h4>
       <p><b>{{ cot.vehiculo }}</b></p>
-      <p class="muted">Grupo Soldador M.A.M</p>
     </div>
   </div>
 
@@ -101,9 +97,5 @@
   </div>
   {% endif %}
 
-  <div class="doc-firma">
-    <div class="lin"><span>Realizó</span>{{ cot.creado_por.get_full_name|default:cot.creado_por.username }}</div>
-    <div class="lin"><span>Autorización del cliente</span>Nombre y firma</div>
-  </div>
 </div>
 {% endblock %}
