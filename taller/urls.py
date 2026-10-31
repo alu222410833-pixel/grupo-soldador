@@ -15,6 +15,7 @@ urlpatterns = [
     path("cotizaciones/nueva/", views.cotizacion_nueva, name="cotizacion_nueva"),
     path("clientes/", views.clientes, name="clientes"),
     path("clientes/nuevo/", views.cliente_nuevo, name="cliente_nuevo"),
+    path("clientes/nueva/", views.cliente_nueva, name="cliente_nueva"),
     path("clientes/<int:pk>/", views.cliente_detalle, name="cliente_detalle"),
     path("usuarios/", views.usuarios, name="usuarios"),
     path("usuarios/nuevo/", views.usuario_nuevo, name="usuario_nuevo"),

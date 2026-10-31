@@ -108,6 +108,30 @@ def cliente_nuevo(request):
 
 
 @login_required
+def cliente_nueva(request):
+    """Alta rápida de cliente desde la cotización (JSON)."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Método no permitido."}, status=405)
+    nombre = request.POST.get("nombre", "").strip()
+    if not nombre:
+        return JsonResponse({"error": "El nombre es obligatorio."}, status=400)
+    paterno = request.POST.get("apellido_paterno", "").strip()
+    materno = request.POST.get("apellido_materno", "").strip()
+    tel = request.POST.get("telefono", "").strip()
+    if tel and not tel.startswith("+52"):
+        tel = "+52 " + tel
+    existe = Cliente.objects.filter(
+        nombre__iexact=nombre, apellido_paterno__iexact=paterno, apellido_materno__iexact=materno
+    ).first()
+    if existe:
+        return JsonResponse({"id": existe.pk, "nombre": existe.nombre_completo, "tel": existe.telefono, "existe": True})
+    c = Cliente.objects.create(
+        nombre=nombre, apellido_paterno=paterno, apellido_materno=materno, telefono=tel
+    )
+    return JsonResponse({"id": c.pk, "nombre": c.nombre_completo, "tel": c.telefono})
+
+
+@login_required
 @user_passes_test(lambda u: u.is_staff)
 def usuarios(request):
     User = get_user_model()
@@ -187,18 +211,17 @@ def cotizacion_nueva(request):
             messages.success(request, f"Cotización {cot.folio} creada — ${cot.total:,.2f} MXN.")
             return redirect("cotizaciones")
 
-    vehiculos_map = {
-        c.pk: [
-            {"desc": v.descripcion, "img": v.imagen.url if v.imagen else ""}
-            for v in c.vehiculos.all()
-        ]
-        for c in Cliente.objects.prefetch_related("vehiculos")
-    }
+    clientes_qs = list(Cliente.objects.prefetch_related("vehiculos"))
+    clientes_map = [
+        {"id": c.pk, "nombre": c.nombre_completo, "tel": c.telefono,
+         "vehs": [{"desc": v.descripcion, "img": v.imagen.url if v.imagen else ""}
+                  for v in c.vehiculos.all()]}
+        for c in clientes_qs
+    ]
     return render(request, "taller/cotizacion_form.html", {
-        "clientes": Cliente.objects.all(),
         "productos": Producto.objects.filter(activo=True),
         "estados": Cotizacion.Estado.choices,
-        "vehiculos_map": vehiculos_map,
+        "clientes_map": clientes_map,
     })
 
 
